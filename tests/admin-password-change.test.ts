@@ -196,6 +196,73 @@ describe("the strength hint matches the rule it describes", () => {
   });
 });
 
+describe("the CLI reset is the recovery path, and is guarded", () => {
+  const cli = readFileSync(resolve(ROOT, "scripts/admin-create.ts"), "utf8");
+
+  it("offers --reset-password", () => {
+    expect(cli).toContain('arg("reset-password")');
+    expect(cli).toContain("npm run admin:create -- --reset-password");
+  });
+
+  it("🔴 every mode, reset included, passes the remote-target guard before connecting", () => {
+    // The guard sits in `main()` ahead of `withDirectClient`, so it covers all
+    // branches. If someone later moves it inside one, this fails.
+    const guardAt = cli.indexOf("assertTargetAllowed(");
+    const connectAt = cli.indexOf("withDirectClient(");
+    expect(guardAt).toBeGreaterThan(-1);
+    expect(guardAt).toBeLessThan(connectAt);
+  });
+
+  it("generates the password rather than accepting one for this path", () => {
+    const branch = cli.slice(cli.indexOf("if (resetFor) {"), cli.indexOf("const email = arg(\"email\")"));
+    expect(branch).toContain("generatePassword()");
+    expect(branch).toContain("hashPassword(");
+    // No `--password` override on the reset path: nothing sensitive in argv.
+    expect(branch).not.toContain('arg("password")');
+  });
+
+  it("🔴 clears the lockout counters, so a locked-out owner can actually sign in", () => {
+    const branch = cli.slice(cli.indexOf("if (resetFor) {"), cli.indexOf("const email = arg(\"email\")"));
+    expect(branch).toContain("failed_login_count = 0");
+    expect(branch).toContain("locked_until = NULL");
+  });
+
+  it("🔴 revokes EVERY session — unlike the in-app endpoint, which spares the caller's", () => {
+    const branch = cli.slice(cli.indexOf("if (resetFor) {"), cli.indexOf("const email = arg(\"email\")"));
+    expect(branch).toContain("UPDATE admin_sessions s SET revoked_at = now()");
+    expect(branch).not.toContain("currentToken");
+  });
+
+  it("fails when no such account exists, instead of silently doing nothing", () => {
+    expect(cli).toContain('throw new Error(`No admin account with email "${resetFor}"`)');
+  });
+
+  it("validates the generated password against the shared rules", () => {
+    const branch = cli.slice(cli.indexOf("if (resetFor) {"), cli.indexOf("const email = arg(\"email\")"));
+    expect(branch).toContain("validatePasswordStrength(fresh)");
+  });
+
+  it("writes the one-time password to stdout only, never through the logger", () => {
+    const branch = cli.slice(cli.indexOf("if (resetFor) {"), cli.indexOf("const email = arg(\"email\")"));
+    expect(branch).toContain("process.stdout.write");
+    expect(branch).not.toMatch(/logger\(\)/);
+    expect(branch).not.toMatch(/console\./);
+  });
+
+  it("points the operator at the new in-app screen afterwards", () => {
+    expect(cli).toContain("/admin/settings");
+  });
+
+  it("🔴 introduces no mail provider — D-038 forbids outbound email", () => {
+    // Deliberately matches USAGE, not mention: the script's header names
+    // RESEND_API_KEY and MAIL_FROM precisely to record that they are boot
+    // failures, and that explanation must stay greppable.
+    expect(cli).not.toMatch(/^\s*import .*(resend|nodemailer|sendgrid|postmark)/im);
+    expect(cli).not.toMatch(/process\.env\.(RESEND_API_KEY|MAIL_FROM|ALERT_TO_EMAIL)/);
+    expect(cli).not.toMatch(/\b(sendMail|sendEmail)\s*\(/);
+  });
+});
+
 describe("no insecure shortcut was added alongside it", () => {
   it("🔴 no public registration or self-service reset route exists", () => {
     const api = resolve(ROOT, "src/app/api");

@@ -11,6 +11,18 @@
  *   npm run admin:create -- --email a@b.com --name "…" --password '…'
  *   npm run admin:create -- --list
  *   npm run admin:create -- --deactivate a@b.com
+ *   npm run admin:create -- --reset-password a@b.com
+ *
+ * 🔴 `--reset-password` is the ONLY recovery path for a forgotten password, and
+ * it is deliberately a CLI operation rather than a self-service flow. The site
+ * sends no email at all (D-038 — `RESEND_API_KEY`, `MAIL_FROM` and
+ * `ALERT_TO_EMAIL` are boot failures), so an emailed reset link is not merely
+ * unimplemented, it is unavailable by decision. The alternatives were a reset
+ * token table plus a mail provider — a large new attack surface for a
+ * two-person admin — or nothing, which leaves a locked-out owner with no route
+ * back in. This is the small, auditable middle: it needs an operator who
+ * already holds the database credentials, which is the same trust level as
+ * creating the account in the first place.
  *
  * 🔴 A REMOTE database must be named explicitly:
  *   npm run admin:create -- --email a@b.com --name "…" --confirm-remote ep-x.neon.tech
@@ -78,6 +90,7 @@ async function main(): Promise<void> {
 
   const list = process.argv.includes("--list");
   const deactivate = arg("deactivate");
+  const resetFor = arg("reset-password");
 
   await withDirectClient(async (client) => {
     if (list) {
@@ -128,6 +141,54 @@ async function main(): Promise<void> {
       return;
     }
 
+    if (resetFor) {
+      // A new one-time password, by the same generator the create path uses, so
+      // there is one definition of "strong enough" here.
+      const fresh = generatePassword();
+      const problems = validatePasswordStrength(fresh);
+      if (problems.length > 0) {
+        throw new Error(`Generated password ${problems.join(", ")} — refusing to set it.`);
+      }
+
+      const hash = await hashPassword(fresh);
+
+      // 🔴 Clearing the lockout counters is part of the reset, not a
+      // convenience: the usual reason someone needs this is that they locked
+      // themselves out, and leaving `locked_until` set would hand them a fresh
+      // password they still cannot use for fifteen minutes.
+      const res = await client.query(
+        `UPDATE admin_users
+            SET password_hash = $2, password_changed_at = now(),
+                failed_login_count = 0, locked_until = NULL
+          WHERE email = $1`,
+        [resetFor, hash],
+      );
+      if ((res.rowCount ?? 0) === 0) {
+        throw new Error(`No admin account with email "${resetFor}"`);
+      }
+
+      // 🔴 EVERY session goes, unlike the in-app change endpoint which spares
+      // the caller's own. There is no caller here, and the premise of a reset is
+      // that control of the account is in doubt — so any session still open is
+      // exactly what must not survive.
+      const sessions = await client.query(
+        `UPDATE admin_sessions s SET revoked_at = now()
+           FROM admin_users u
+          WHERE s.user_id = u.id AND u.email = $1 AND s.revoked_at IS NULL`,
+        [resetFor],
+      );
+
+      process.stdout.write(
+        `\nReset the password for ${resetFor} and revoked ${String(sessions.rowCount ?? 0)} session(s).\n`,
+      );
+      // Written straight to stdout, never through the logger — same reasoning,
+      // and the same handling instructions, as the create path below.
+      process.stdout.write(`\n  Password (shown once): ${fresh}\n\n`);
+      process.stdout.write("  Store it in a password manager now. It is not recoverable.\n");
+      process.stdout.write("  Then change it at /admin/settings → Your password.\n");
+      return;
+    }
+
     const email = arg("email");
     const name = arg("name");
     if (!email || !name) {
@@ -160,7 +221,9 @@ async function main(): Promise<void> {
 
     if (rows.length === 0) {
       throw new Error(
-        `An account for "${email}" already exists. Use --deactivate, or change the password through the admin UI.`,
+        `An account for "${email}" already exists. To change its password, use ` +
+          "/admin/settings → Your password, or --reset-password if it has been forgotten. " +
+          "To retire the account, use --deactivate.",
       );
     }
 
