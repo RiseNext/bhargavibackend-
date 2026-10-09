@@ -49,7 +49,7 @@ than failing inside a request.
 | Variable | Absent ⇒ |
 |---|---|
 | `CLOUDINARY_CLOUD_NAME` / `_API_KEY` / `_API_SECRET` | no media upload or delivery (E7/E8/E12) |
-| `VERCEL_DEPLOY_HOOK_URL` | content edits do not trigger a frontend rebuild (D-016) |
+| `VERCEL_DEPLOY_HOOK_URL` | 🔴 **the admin panel cannot publish anything.** Content edits are saved and never reach the public site (D-016). "Optional" here means *the backend boots* — deliberately, because a boot failure would also take down lead capture, and a lost patient lead is worse than stale content. It is **required for a working admin panel**. Since the 2026-10-10 repair an unset hook in production is audited and alerted on every mutation, the admin forms say the change is **not** published instead of claiming a rebuild, and the dashboard's Publishing panel names this variable. Verify with `npm run verify:published` |
 | `REDIS_URL` | 🔴 **Do not set it.** Declared in `env.ts` but **no Redis path is implemented** — no client, no dependency. Rate limiting always uses the `rate_limit_hits` table, which lives in Postgres and is therefore already correct across multiple containers. Nothing is missing |
 | `NODE_ENV` | defaults to `development` — **set it to `production`** |
 | `LOG_LEVEL` | defaults to `info` |
@@ -104,9 +104,31 @@ provider and no account to create.
 - **`NODE_ENV=production` can be set as soon as Railway has the eight required variables.** It no
   longer waits on anything: the mail gate that used to make this ordering-sensitive is gone (D-038).
 - **Cloudinary before seed S2** — S2 reads the upload manifest; there is nothing to seed without it.
-- **Vercel's Deploy Hook is a loop back into Railway.** It cannot exist until the Vercel project
-  does, so Railway gets one env update *after* step 5. Content edits silently fail to publish until
-  then — the backend alerts on this rather than failing quietly.
+- 🔴 **Vercel's Deploy Hook is a loop back into Railway, and it is the step this project actually
+  missed.** It cannot exist until the Vercel project does, so Railway gets one env update *after*
+  step 5 — which makes it the one step with nothing before it in the sequence to force it. It was
+  not completed. The consequence was not a visible outage: the website stayed up serving the
+  content it was last built with, the admin panel accepted every edit and reported success, and
+  the gap was found only when somebody compared a testimonial on the site with the same
+  testimonial in the database.
+
+  The claim that "the backend alerts on this rather than failing quietly" was **false when
+  written** — `fireDeployHook` returned on a `debug` line with no audit row and no alert. It is
+  true now. Do not treat step 4 as done until this passes:
+
+  ```
+  BACKEND_URL=https://<railway-app> BACKEND_API_KEY=<key> npm run verify:published
+  ```
+
+  It regenerates content from the live backend, diffs it against what the frontend was built
+  from, and then reads the real public pages to confirm the newest edit is visible and that
+  nothing unpublished still is. It exits non-zero while publishing is broken, which is the
+  property every other check in this repository lacked.
+
+  Also set **`BACKEND_URL`** and **`BACKEND_API_KEY`** on Vercel's **Production** environment in
+  step 4. Without them the rebuild runs and regenerates nothing, which fails the same way one
+  layer later. The generator now refuses to skip on a production build rather than succeeding
+  quietly.
 - **DNS last.** Verify on the platform domains first; DNS propagation makes mistakes slow to undo.
 - 🔴 **A preview deployment must never point at the production database.** Previews get the staging
   `BACKEND_URL`.

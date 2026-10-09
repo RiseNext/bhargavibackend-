@@ -46,6 +46,18 @@ export interface TriggerResult {
 }
 
 /**
+ * Whether a rebuild can be triggered at all.
+ *
+ * Read by the admin API so a save response can state what actually happened
+ * instead of asserting that a rebuild was queued. "Saved, and a rebuild is
+ * coming" and "saved, and nothing will ever publish it" are different
+ * outcomes, and the administrator is the person who needs to tell them apart.
+ */
+export function isDeployHookConfigured(): boolean {
+  return Boolean(env().VERCEL_DEPLOY_HOOK_URL);
+}
+
+/**
  * Fires the hook immediately, with retries.
  *
  * Never throws: a failed deploy hook must not fail the content mutation that
@@ -56,9 +68,38 @@ export async function fireDeployHook(reason: string): Promise<TriggerResult> {
   const url = env().VERCEL_DEPLOY_HOOK_URL;
 
   if (!url) {
-    // Normal locally and in CI. Not an error — but worth a line, because a
-    // production container reaching here means a missing secret.
-    logger().debug("deploy_hook.not_configured", { reason });
+    // 🔴 THE FAILURE THIS BRANCH ONCE HID.
+    //
+    // Locally and in CI an unset hook is normal, so this returned after a
+    // `debug` line and nothing else — no audit row, no alert. In PRODUCTION
+    // that made the only content-publishing mechanism in the system fail
+    // completely and leave no trace: thirteen content mutations were recorded
+    // in `audit_log` with not one `deploy_hook` row beside them, the admin was
+    // told "a site rebuild has been queued" every time, and the dashboard
+    // said "No rebuild has been triggered yet" — which reads as "not yet"
+    // rather than "never will". The live site served content generated weeks
+    // earlier while every layer below it was correct.
+    //
+    // So: still silent in development, but in production this is a recorded,
+    // alerting failure like any other. The audit row is what `GET
+    // /api/admin/summary` reads to tell an administrator that saving content
+    // currently cannot publish it.
+    if (env().isProduction) {
+      await audit({
+        action: "deploy_hook",
+        entityType: "deploy",
+        diff: { ok: false, reason, attempts: 0, error: "not_configured" },
+      });
+      raiseAlertDetached({
+        kind: "deploy_hook_failed",
+        summary:
+          "VERCEL_DEPLOY_HOOK_URL is not set on the production backend, so NO content change " +
+          "can reach the public website. Content is saved correctly; it is never published.",
+        context: { reason },
+      });
+    } else {
+      logger().debug("deploy_hook.not_configured", { reason });
+    }
     return { ok: false, attempts: 0, error: "not_configured" };
   }
 

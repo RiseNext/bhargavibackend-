@@ -351,6 +351,68 @@ export function mediaUrlProblems(content) {
 }
 
 // ---------------------------------------------------------------------------
+// R-i EXTENDED — a production deploy may never silently keep stale content
+// ---------------------------------------------------------------------------
+
+/**
+ * Whether `prebuild` may legitimately use the COMMITTED content files instead
+ * of regenerating from the API.
+ *
+ * 🔴 THE RELEASE THIS EXISTS TO STOP — and it is the mirror image of every
+ * other check in this file. The rest of R-i asks "is the generated content
+ * missing or wrong?". This asks "was anything generated AT ALL?".
+ *
+ * D-016 commits the generated files so that a build never depends on the API
+ * being reachable, which makes an unset `BACKEND_URL` a legitimate no-op for a
+ * developer building locally and for a CI job with no database. On a Vercel
+ * PRODUCTION deployment it is not a no-op: it silently converts the entire
+ * publishing pipeline into a rebuild of content committed days earlier. The
+ * deploy goes green, Vercel reports success, the editor is told their change is
+ * live, and the website does not change. That is indistinguishable — from every
+ * surface an operator can see — from the system working.
+ *
+ * A production build therefore refuses rather than skips. The cost of being
+ * wrong in each direction is not symmetric: a failed build is visible and
+ * fixable in minutes, while a silently stale deploy is the failure this whole
+ * project is built to prevent, and it hides for as long as nobody compares the
+ * site to the database.
+ *
+ * `VERCEL_ENV` is Vercel's own marker (`production` | `preview` |
+ * `development`), set by the platform and not by us, so this needs no new
+ * configuration to work. Previews are deliberately exempt: a preview of a
+ * frontend-only change is a normal thing to build without content credentials.
+ */
+export function generationSkipDecision(source = process.env) {
+  if (source.BACKEND_URL) return { skip: false, refuse: false };
+
+  if (source.VERCEL_ENV === "production") {
+    return {
+      skip: false,
+      refuse: true,
+      reason:
+        "BACKEND_URL is not set, but this is a Vercel PRODUCTION build.\n\n" +
+        "  Skipping generation here would rebuild the site from the content files committed in\n" +
+        "  git and report success, so every change made in the admin panel since those files\n" +
+        "  were last regenerated would stay invisible on the live website — with a green\n" +
+        "  deployment and no error anywhere. That is the exact silent failure D-016's generator\n" +
+        "  is built to prevent, so the build stops instead.\n\n" +
+        "  Set BACKEND_URL (and BACKEND_API_KEY) on the Vercel project's Production\n" +
+        "  environment. To build without refreshing content on purpose, do it from a preview\n" +
+        "  deployment rather than production.",
+    };
+  }
+
+  return {
+    skip: true,
+    refuse: false,
+    reason:
+      "Content generation skipped: BACKEND_URL is not set.\n" +
+      "  Using the committed content files, which is the intended behaviour for a\n" +
+      "  build that is not refreshing content (D-016).",
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Serialisation
 // ---------------------------------------------------------------------------
 
@@ -1060,14 +1122,13 @@ async function main() {
   // with no database, must not be blocked. The committed files are used as-is.
   //
   // This is NOT a silent fallback for a broken backend: if BACKEND_URL IS set
-  // and the API fails, the build stops (R-i). The skip only covers the case
-  // where no generation was requested at all.
-  if (!process.env.BACKEND_URL) {
-    process.stdout.write(
-      "Content generation skipped: BACKEND_URL is not set.\n" +
-        "  Using the committed content files, which is the intended behaviour for a\n" +
-        "  build that is not refreshing content (D-016).\n",
-    );
+  // and the API fails, the build stops (R-i). And on a Vercel PRODUCTION build
+  // the skip itself is refused, because there it would publish stale content
+  // under a green deploy — see generationSkipDecision.
+  const decision = generationSkipDecision(process.env);
+  if (decision.refuse) throw new Error(decision.reason);
+  if (decision.skip) {
+    process.stdout.write(`${decision.reason}\n`);
     return;
   }
 

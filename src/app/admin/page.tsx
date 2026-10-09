@@ -16,6 +16,8 @@ import Link from "next/link";
 import { requireAdminPage } from "@/lib/auth/guard";
 import { query, queryOne } from "@/lib/db";
 import { isCloudinaryConfigured } from "@/lib/cloudinary/client";
+import { isDeployHookConfigured } from "@/lib/deploy-hook";
+import { publishingState } from "@/lib/publishing-state";
 
 export const dynamic = "force-dynamic";
 
@@ -55,6 +57,33 @@ export default async function DashboardPage() {
     `SELECT created_at, diff FROM audit_log
       WHERE action = 'deploy_hook' ORDER BY created_at DESC LIMIT 1`,
   );
+
+  // The last SUCCESSFUL rebuild and the newest content change — the two values
+  // whose comparison answers "is the public site current?".
+  const hookOk = await queryOne<{ created_at: Date }>(
+    `SELECT created_at FROM audit_log
+      WHERE action = 'deploy_hook' AND diff->>'ok' = 'true'
+      ORDER BY created_at DESC LIMIT 1`,
+  );
+
+  const contentChange = await queryOne<{ latest: Date | null }>(
+    `SELECT max(updated_at) AS latest FROM (
+        SELECT updated_at FROM services UNION ALL
+        SELECT updated_at FROM testimonials UNION ALL
+        SELECT updated_at FROM videos UNION ALL
+        SELECT updated_at FROM faqs UNION ALL
+        SELECT updated_at FROM jobs UNION ALL
+        SELECT updated_at FROM content_blocks UNION ALL
+        SELECT updated_at FROM site_settings
+     ) c`,
+  );
+
+  const publishing = publishingState({
+    configured: isDeployHookConfigured(),
+    lastContentChangeAt: contentChange?.latest ?? null,
+    lastSuccessAt: hookOk?.created_at ?? null,
+    lastAttemptFailed: hook !== undefined && hook.diff?.ok !== true,
+  });
 
   const unpublishedTotal = unpublished.reduce((sum, r) => sum + Number(r.n), 0);
   const failures = Number(leads?.failures ?? "0");
@@ -110,13 +139,64 @@ export default async function DashboardPage() {
       )}
 
       <h2 style={{ fontSize: 16, marginTop: 28 }}>Publishing</h2>
-      <p style={{ fontSize: 14, color: "var(--muted)", marginTop: 0 }}>
-        {hook
-          ? `Last rebuild ${hook.created_at.toISOString().slice(0, 16).replace("T", " ")} UTC — ${
-              hook.diff?.ok === true ? "succeeded" : "FAILED"
-            }.`
-          : "No rebuild has been triggered yet. Content changes reach the public site by a rebuild, so this will populate once one fires."}
+
+      {/*
+        🔴 The panel that was missing. It previously reported only the last
+        rebuild ATTEMPT, and reported the never-configured case as "No rebuild
+        has been triggered yet … this will populate once one fires" — wording
+        that describes a wait rather than a permanent failure. An administrator
+        read that while every content change they made sat unpublished.
+
+        `not_configured` and `failing` are rendered in the danger colour used by
+        the encryption-failure alert, because they are the same class of problem:
+        the system is not doing the job the operator believes it is doing.
+      */}
+      <p
+        {...(publishing.state === "not_configured" || publishing.state === "failing"
+          ? { role: "alert" as const }
+          : {})}
+        style={{
+          fontSize: 14,
+          marginTop: 0,
+          ...(publishing.state === "not_configured" || publishing.state === "failing"
+            ? {
+                padding: 12,
+                border: "1px solid var(--danger)",
+                borderRadius: "var(--radius)",
+                color: "var(--danger)",
+              }
+            : { color: "var(--muted)" }),
+        }}
+      >
+        {publishing.message}
       </p>
+
+      <p style={{ fontSize: 13, color: "var(--muted)" }}>
+        {publishing.lastSuccessAt === null
+          ? "No rebuild has ever completed successfully."
+          : `Last successful rebuild ${publishing.lastSuccessAt
+              .slice(0, 16)
+              .replace("T", " ")} UTC.`}
+        {hook !== undefined && hook.diff?.ok !== true && (
+          <>
+            {" "}
+            Last attempt {hook.created_at.toISOString().slice(0, 16).replace("T", " ")} UTC
+            failed.
+          </>
+        )}
+      </p>
+
+      {/*
+        Which build is running. "Is the fix deployed?" could not be answered
+        from anything the backend served, so a pushed commit and a running
+        commit were indistinguishable from here.
+      */}
+      {process.env.RAILWAY_GIT_COMMIT_SHA !== undefined && (
+        <p style={{ fontSize: 12, color: "var(--muted)" }}>
+          Backend build <code>{process.env.RAILWAY_GIT_COMMIT_SHA.slice(0, 7)}</code>
+          {process.env.RAILWAY_GIT_BRANCH !== undefined && ` on ${process.env.RAILWAY_GIT_BRANCH}`}.
+        </p>
+      )}
 
       <h2 style={{ fontSize: 16, marginTop: 24 }}>Integrations</h2>
       <ul style={{ fontSize: 14, paddingLeft: 18 }}>

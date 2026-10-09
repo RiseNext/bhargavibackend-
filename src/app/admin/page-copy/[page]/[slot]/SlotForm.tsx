@@ -19,6 +19,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import SaveNotice, { publishingConfiguredFrom } from "../../../_components/SaveNotice";
 
 const CSRF_COOKIE = "bhw_csrf";
 
@@ -69,6 +70,8 @@ export default function SlotForm({
   });
 
   const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
+  // Whether the save that just succeeded can actually reach the public site.
+  const [publishable, setPublishable] = useState(true);
   const [error, setError] = useState<string | undefined>();
 
   const touch = (): void => {
@@ -121,6 +124,7 @@ export default function SlotForm({
         return;
       }
 
+      setPublishable(publishingConfiguredFrom(response));
       setState("saved");
       router.refresh();
     } catch {
@@ -225,11 +229,7 @@ export default function SlotForm({
           {error}
         </p>
       )}
-      {state === "saved" && (
-        <p style={{ color: "var(--ok)", fontSize: 13, marginTop: 16 }}>
-          Saved. A site rebuild has been queued — changes appear in a couple of minutes.
-        </p>
-      )}
+      {state === "saved" && <SaveNotice configured={publishable} />}
 
       <button
         type="button"

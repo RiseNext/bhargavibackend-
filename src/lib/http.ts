@@ -13,6 +13,7 @@
 
 import { NextResponse } from "next/server";
 import { safeEqual } from "./auth/password";
+import { isDeployHookConfigured } from "./deploy-hook";
 import { env } from "./env";
 import { toPublicError } from "./errors";
 import { logger } from "./logger";
@@ -42,6 +43,15 @@ export function respond(body: unknown, options: RespondOptions = {}): NextRespon
   if (options.admin) {
     headers["Cache-Control"] = CACHE_ADMIN;
     headers["X-Robots-Tag"] = "noindex, nofollow";
+    // 🔴 So a save can never again claim a rebuild it cannot trigger.
+    //
+    // Content reaches the public site only by a rebuild (D-016). When
+    // VERCEL_DEPLOY_HOOK_URL is unset there is no rebuild, yet every admin form
+    // still said "Saved. A site rebuild has been queued" — and the content
+    // stayed invisible. A header rather than a body field because admin
+    // responses have fourteen different body shapes and none of them should
+    // change; the forms read this to choose their wording.
+    headers["X-Publishing-Configured"] = isDeployHookConfigured() ? "1" : "0";
   } else if (options.cache) {
     headers["Cache-Control"] = options.cache;
   }

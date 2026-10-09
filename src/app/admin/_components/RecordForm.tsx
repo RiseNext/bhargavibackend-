@@ -23,6 +23,7 @@ import {
   type FieldSpec,
 } from "@/lib/admin/ui-schema";
 import MediaPicker from "./MediaPicker";
+import SaveNotice, { publishingConfiguredFrom } from "./SaveNotice";
 
 const CSRF_COOKIE = "bhw_csrf";
 
@@ -118,6 +119,8 @@ export default function RecordForm({
   const [values, setValues] = useState<Values>(() => toFormValues(ui, row));
   const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
   const [error, setError] = useState<string | undefined>();
+  // Whether the save that just succeeded can actually reach the public site.
+  const [publishable, setPublishable] = useState(true);
 
   const set = (name: string, value: unknown): void => {
     setValues((previous) => ({ ...previous, [name]: value }));
@@ -162,6 +165,7 @@ export default function RecordForm({
         return;
       }
 
+      setPublishable(publishingConfiguredFrom(response));
       setState("saved");
       if (isNew) {
         const created = (await response.json()) as { id?: string };
@@ -191,7 +195,11 @@ export default function RecordForm({
       setState("idle");
       return;
     }
-    setState("idle");
+    // Reported like any other save: unpublishing is the operation whose
+    // silent non-publication is hardest to notice, because the admin list
+    // correctly shows "unpublished" while the public page still shows the item.
+    setPublishable(publishingConfiguredFrom(response));
+    setState("saved");
     router.refresh();
   }
 
@@ -245,11 +253,7 @@ export default function RecordForm({
           {error}
         </p>
       )}
-      {state === "saved" && (
-        <p style={{ color: "var(--ok)", fontSize: 13 }}>
-          Saved. A site rebuild has been queued — changes appear in a couple of minutes.
-        </p>
-      )}
+      {state === "saved" && <SaveNotice configured={publishable} />}
 
       <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
         <button type="button" onClick={() => void save()} disabled={state === "saving"} style={primary}>

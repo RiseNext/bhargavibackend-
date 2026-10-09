@@ -24,6 +24,7 @@
     "verify:page-copy": "tsx scripts/verify-page-copy-consumed.mts",
     "verify:robots": "tsx scripts/verify-robots.mts",
     "verify:reconciliation": "tsx scripts/verify-reconciliation.mts",
+    "verify:published": "node scripts/verify-published.mjs",
     "verify:migration-order": "tsx scripts/verify-migration-order.mts",
     "seed:local-full": "tsx scripts/seed-local-full.mts",
     "e2e:proxy": "node scripts/proxy-e2e.mjs",

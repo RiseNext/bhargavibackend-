@@ -10,6 +10,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import SaveNotice, { publishingConfiguredFrom } from "../_components/SaveNotice";
 
 const CSRF_COOKIE = "bhw_csrf";
 
@@ -136,6 +137,8 @@ export default function SettingsForm({ row }: { row: Record<string, unknown> }) 
   });
 
   const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
+  // Whether the save that just succeeded can actually reach the public site.
+  const [publishable, setPublishable] = useState(true);
   const [error, setError] = useState<string | undefined>();
 
   const set = (name: string, value: unknown): void => {
@@ -174,6 +177,7 @@ export default function SettingsForm({ row }: { row: Record<string, unknown> }) 
         return;
       }
 
+      setPublishable(publishingConfiguredFrom(response));
       setState("saved");
       router.refresh();
     } catch {
@@ -235,11 +239,7 @@ export default function SettingsForm({ row }: { row: Record<string, unknown> }) 
           {error}
         </p>
       )}
-      {state === "saved" && (
-        <p style={{ color: "var(--ok)", fontSize: 13 }}>
-          Saved. A site rebuild has been queued.
-        </p>
-      )}
+      {state === "saved" && <SaveNotice configured={publishable} />}
 
       <button
         type="button"

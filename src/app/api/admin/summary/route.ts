@@ -19,6 +19,8 @@ import { requireAdmin } from "@/lib/auth/guard";
 import { query, queryOne } from "@/lib/db";
 import { CACHE_NO_STORE, handle, respond } from "@/lib/http";
 import { isCloudinaryConfigured } from "@/lib/cloudinary/client";
+import { isDeployHookConfigured } from "@/lib/deploy-hook";
+import { publishingState } from "@/lib/publishing-state";
 
 export const dynamic = "force-dynamic";
 
@@ -98,6 +100,16 @@ export function GET(): Promise<Response> {
           ORDER BY created_at DESC LIMIT 1`,
       );
 
+      // 🔴 The last SUCCESSFUL rebuild, which is a different question from the
+      // last attempt — and the only one that says whether the public site has
+      // the current content. A failing hook leaves recent attempts behind while
+      // the site falls further and further behind the database.
+      const lastHookOk = await queryOne<{ created_at: Date }>(
+        `SELECT created_at FROM audit_log
+          WHERE action = 'deploy_hook' AND diff->>'ok' = 'true'
+          ORDER BY created_at DESC LIMIT 1`,
+      );
+
       return respond(
         {
           leads: {
@@ -123,8 +135,36 @@ export function GET(): Promise<Response> {
           lastDeployHook: lastHook
             ? { at: lastHook.created_at.toISOString(), ok: lastHook.diff?.ok ?? false }
             : null,
+          // 🔴 Is the public website showing the current content, or not?
+          //
+          // Every number above this line describes the DATABASE. None of them
+          // answered the question an administrator actually has after saving,
+          // which is "did that reach the website?" — and the absence of that
+          // answer is why content sat unpublished with a green dashboard.
+          publishing: publishingState({
+            configured: isDeployHookConfigured(),
+            lastContentChangeAt: lastContentChange?.latest ?? null,
+            lastSuccessAt: lastHookOk?.created_at ?? null,
+            lastAttemptFailed: lastHook !== undefined && lastHook.diff?.ok !== true,
+          }),
           integrations: {
             storage: isCloudinaryConfigured(),
+          },
+          // Which build is actually running.
+          //
+          // "Is the fix deployed?" was unanswerable during the publishing
+          // investigation: the repository had the commit, Railway reported a
+          // success, and nothing served by the backend said which commit that
+          // was. Railway injects these; they are absent locally.
+          //
+          // 🔴 Behind `requireAdmin`, deliberately NOT on `/api/health` —
+          // that probe documents itself as revealing "nothing beyond
+          // booleans: no versions, no hostnames", and a commit SHA on an
+          // unauthenticated endpoint is exactly the version disclosure it
+          // declines to make.
+          build: {
+            commit: process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 7) ?? null,
+            branch: process.env.RAILWAY_GIT_BRANCH ?? null,
           },
         },
         { admin: true, cache: CACHE_NO_STORE },
