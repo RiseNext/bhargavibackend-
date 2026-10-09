@@ -18,6 +18,7 @@ import { queryOne } from "@/lib/db";
 import { loadBranches } from "@/lib/settings/site-settings";
 import { resolveGlobals } from "@/lib/settings/resolve";
 import SettingsForm from "./SettingsForm";
+import PasswordForm from "./PasswordForm";
 
 export const dynamic = "force-dynamic";
 
@@ -92,6 +93,29 @@ export default async function SettingsPage() {
           <dt style={{ color: "var(--muted)" }}>Map</dt>
           <dd style={{ margin: 0 }}>{nameFor(provenance.mapEmbedSrc)}</dd>
         </dl>
+      </section>
+
+      {/*
+        Your own sign-in, not the clinic's business facts — which is why it sits
+        in its own section rather than inside `SettingsForm`. It posts to
+        `POST /api/admin/auth/password`; nothing about it is a `site_settings`
+        column, so it shares no state with the form above.
+      */}
+      <section
+        style={{
+          marginTop: 30,
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          borderRadius: "var(--radius)",
+          padding: 14,
+        }}
+      >
+        <h2 style={{ fontSize: 15, marginTop: 0 }}>Your password</h2>
+        <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 0 }}>
+          Changing it signs out every other device and keeps you signed in here.
+        </p>
+
+        <PasswordForm />
       </section>
     </>
   );
