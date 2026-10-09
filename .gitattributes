@@ -1,0 +1,30 @@
+# 🔴 CHECK EVERY TEXT FILE OUT WITH LF, ON EVERY PLATFORM.
+#
+# `generator/generate-content.mjs` starts with a shebang. Cloned on Windows with
+# the default `core.autocrlf=true`, that line becomes `#!/usr/bin/env node\r\n`,
+# esbuild's shebang stripping no longer matches it, and importing the module
+# fails with:
+#
+#     SyntaxError: Invalid or unexpected token
+#
+# Three suites import that generator, so all three fail to load and 99 tests
+# silently stop running — with no hint that line endings are the cause.
+# Reproduced in a clean Windows clone and fixed by converting the file to LF.
+#
+# Linux runners check out LF already, which is why CI never saw this and a
+# Windows contributor would see nothing else. Declaring it here makes the
+# working tree identical on both.
+* text=auto eol=lf
+
+# Binary — never translate these.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.dump binary
+*.sql.gz binary

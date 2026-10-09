@@ -41,13 +41,46 @@ jobs:
       DATABASE_URL_UNPOOLED: postgresql://bhw:bhwci@localhost:5432/bhw
       FRONTEND_ORIGIN: http://localhost:3000
 
+    defaults:
+      run:
+        working-directory: backend
+
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: backend
+
+      # 🔴 THE FRONTEND IS A TEST FIXTURE, NOT AN OPTIONAL EXTRA.
+      #
+      # D-002 keeps the two repositories separate, but several suites verify this
+      # backend against the REAL frontend rather than a copy of it:
+      #
+      #   tests/jsonld-safety.test.ts        imports ../../frontend/src/lib/schema
+      #   tests/page-copy-consumption.test.ts reads the frontend's copy.ts
+      #   tests/blueprint-conformance.test.ts  } assert the shipped frontend
+      #   tests/media-routes-conformance.test.ts } matches this backend
+      #   tests/media-url-guard.test.ts      compares the two generator copies
+      #
+      # With a single-repository checkout, `tsc` cannot resolve that static
+      # import and the Typecheck step fails — which is exactly how this workflow
+      # failed on its first run, 43 seconds in. Checking the frontend out beside
+      # the backend reproduces the layout those tests are written against, so the
+      # checks run for real instead of being deleted.
+      #
+      # No token is needed: RiseNext/bhargavi-fronted is public. `main` is
+      # pinned deliberately — a backend change must be verified against the
+      # frontend that is actually deployed.
+      - uses: actions/checkout@v4
+        with:
+          repository: RiseNext/bhargavi-fronted
+          ref: main
+          path: frontend
 
       - uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
+          node-version-file: backend/.nvmrc
           cache: npm
+          cache-dependency-path: backend/package-lock.json
 
       - run: npm ci
 
