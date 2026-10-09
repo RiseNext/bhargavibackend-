@@ -1,6 +1,55 @@
 # Progress
 
-**Last updated:** 2026-10-08 *(third update — master investigation corrections applied)*
+> ### 🔴 2026-10-10 — the admin panel could not publish anything, and said it had
+>
+> Found by comparing a testimonial on the live site with the same testimonial in the database.
+>
+> **`VERCEL_DEPLOY_HOOK_URL` is not set on the production backend.** Content reaches the public
+> site only by a rebuild (D-016), so with no hook there is no publishing. `fireDeployHook` took
+> its `!url` branch — a `debug` line, no audit row, no alert — and every admin form still said
+> *"Saved. A site rebuild has been queued."*
+>
+> **Measured in production:** 13 content mutations in `audit_log` (6 update, 4 unpublish,
+> 1 publish, 2 create) and **zero `deploy_hook` rows**. Three real edits were stored correctly,
+> filtered correctly by the public API, rendered correctly by the generator, and were never on
+> the website:
+>
+> | Change | In the database | On the live site |
+> |---|---|---|
+> | Testimonial *Shreya Shah* quote edited | ✅ | ❌ old text |
+> | FAQ *"How many sessions…"* edited | ✅ | ❌ old text |
+> | Job *Acupuncture Therapist* unpublished | ✅ excluded from `/api/jobs` | ❌ still advertised |
+>
+> **Every layer was correct.** The database, the API, the publication filter and the generator all
+> did their jobs — `npm run verify:published` regenerates from production and the output matches
+> the database exactly. The pipeline was never *run*. That is why 1,071 passing tests, a green
+> Railway deploy and a green Vercel build all agreed nothing was wrong.
+>
+> **Why the tests missed it.** They test layers, not seams. The integration suites call
+> `cancelQueuedDeployHook()` so a test never fires a build — asserting the hook is *disarmed*,
+> not that it would work. `env.test.ts` asserts production boots with no mail config and said
+> nothing about the hook. `admin-nav.test.ts`'s link regex excluded `$` and `{`, so every
+> template-literal link went unchecked — which is separately how `/admin/applications/[id]`
+> shipped missing.
+>
+> **Repaired (commit `14d6207`, frontend `82a1b07`)** — detection and honesty, not a new
+> architecture (the existing mechanism is sound, it was simply unconfigured):
+> an unset hook in production is audited and alerted · admin forms distinguish *saved* from
+> *published* via `X-Publishing-Configured` · the dashboard compares the newest content change
+> against the last **successful** rebuild and names the missing variable · the generator refuses
+> to skip on a Vercel production build · `npm run verify:published` checks the live site against
+> the database and exits non-zero while publishing is broken.
+>
+> 🔴 **STILL OPEN — this is a configuration action, not a code change.** Set
+> `VERCEL_DEPLOY_HOOK_URL` on Railway and `BACKEND_URL` / `BACKEND_API_KEY` on Vercel's
+> **Production** environment ([PRODUCTION-RUNBOOK.md](PRODUCTION-RUNBOOK.md) step 4). Until then
+> nothing an administrator saves can reach the website.
+>
+> ⚠ **Before the first successful rebuild**, review the three changes above in the admin panel:
+> two of them look like test edits (a `"testing "` prefix on a real patient testimonial, a
+> doubled `??` on an FAQ) and the first rebuild will publish them.
+
+**Last updated:** 2026-10-10 *(publishing failure found, diagnosed and repaired)*
 **Current phase:** Phase 0 — foundation and decisions *(closed except three internal gates)*
 **Status:** 🟢 **41 decisions approved · no client answer blocks Phases 1–12 · Phase 1 ready to start**
 
