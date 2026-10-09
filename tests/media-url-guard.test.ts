@@ -99,6 +99,55 @@ describe("🔴 defence 1 · the generator refuses demo-cloud media", () => {
     expect(mediaUrlProblems({ settings: {}, gallery: [] })).toEqual([]);
   });
 
+  /**
+   * 🔴 THE TWO GENERATOR COPIES MUST NOT DRIFT.
+   *
+   * `generate-content.mjs` is authored in the backend and copied into the
+   * frontend, where `prebuild` actually runs it. Nothing asserted they stayed in
+   * step, and they had already diverged in size. A guard added to one copy and
+   * forgotten in the other is worthless: the frontend copy is the one that gates
+   * a Vercel build.
+   *
+   * Byte equality is deliberately NOT the assertion — the files legitimately
+   * differ in their header paths. What must match is BEHAVIOUR: the same
+   * exported surface, and an identical implementation of the media guard.
+   */
+  it("🔴 both generator copies export the same surface", () => {
+    const names = (src: string): string[] =>
+      [...src.matchAll(/^export function (\w+)/gm)].map((m) => m[1] as string).sort();
+
+    const backend = names(read(resolve(ROOT, "generator", "generate-content.mjs")));
+    const frontend = names(read(resolve(FRONTEND, "scripts", "generate-content.mjs")));
+
+    expect(backend.length).toBeGreaterThan(5);
+    const onlyBackend = backend.filter((n) => !frontend.includes(n));
+    const onlyFrontend = frontend.filter((n) => !backend.includes(n));
+    expect(
+      { onlyBackend, onlyFrontend },
+      "the generator copies have diverged — a function exists in one but not the other",
+    ).toEqual({ onlyBackend: [], onlyFrontend: [] });
+  });
+
+  it("🔴 the media guard is implemented IDENTICALLY in both copies", () => {
+    /** The function body, whitespace-normalised. */
+    const guard = (src: string): string => {
+      const start = src.indexOf("export function mediaUrlProblems");
+      expect(start, "mediaUrlProblems not found").toBeGreaterThan(-1);
+      // Up to the next top-level export, which bounds the function.
+      const rest = src.slice(start + 1);
+      const end = rest.search(/\n(?:export |\/\/ -{3,})/);
+      return (end === -1 ? rest : rest.slice(0, end)).replace(/\s+/g, " ").trim();
+    };
+
+    const backend = guard(read(resolve(ROOT, "generator", "generate-content.mjs")));
+    const frontend = guard(read(resolve(FRONTEND, "scripts", "generate-content.mjs")));
+    expect(
+      frontend,
+      "the frontend copy of mediaUrlProblems differs from the backend source of truth — " +
+        "the frontend copy is the one that gates the Vercel build",
+    ).toBe(backend);
+  });
+
   it("is wired into assertUsable in BOTH generator copies", () => {
     for (const p of [
       resolve(ROOT, "generator", "generate-content.mjs"),
