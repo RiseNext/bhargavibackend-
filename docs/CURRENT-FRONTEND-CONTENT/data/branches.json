@@ -1,0 +1,155 @@
+{
+  "_meta": {
+    "_extractedFrom": "src/lib/site.ts:38-41 (branches) and :30-33 (phones)",
+    "_note": "Verbatim. The frontend's ENTIRE branch model is 3 fields per branch.",
+    "fieldsPresentInSource": [
+      "name",
+      "phone",
+      "whatsapp"
+    ],
+    "fieldsNOTinSource": [
+      "slug",
+      "address",
+      "geo",
+      "mapsUrl",
+      "mapEmbedSrc",
+      "hours",
+      "notifyEmail",
+      "isPrimary",
+      "sortOrder",
+      "isActive"
+    ],
+    "criticalOrderingWarning": "site.branches[0] is CHIKKADPALLY but site.phones[0] is BOWENPALLY. The two arrays are in DIFFERENT orders. Nine UI call sites use phones[0]. Deriving phones from branches naively would silently reorder the site.",
+    "addressWarning": "The frontend contains exactly ONE address (site.address), ONE geo pair, ONE mapsUrl and ONE mapEmbedSrc - all for the CHIKKADPALLY location. They are site-level, NOT inside branches.",
+    "ownerDecision": "D-006: the current frontend address is the initial value for Chikkadpally and must become admin-editable."
+  },
+  "branchesAsInSource": [
+    {
+      "name": "Chikkadpally",
+      "phone": "+91 98663 76203",
+      "whatsapp": "+919866376203"
+    },
+    {
+      "name": "Bowenpally",
+      "phone": "+91 70751 57013",
+      "whatsapp": "+917075157013"
+    }
+  ],
+  "phonesAsInSource": [
+    {
+      "label": "+91 70751 57013",
+      "href": "tel:+917075157013",
+      "branch": "Bowenpally"
+    },
+    {
+      "label": "+91 98663 76203",
+      "href": "tel:+919866376203",
+      "branch": "Chikkadpally"
+    }
+  ],
+  "branchesResolved": [
+    {
+      "name": "Chikkadpally",
+      "slug_NOT_IN_SOURCE": "chikkadpally (proposed)",
+      "phone": "+91 98663 76203",
+      "phoneHref": "tel:+919866376203",
+      "whatsapp": "+919866376203",
+      "address": {
+        "line1": "H. No 1-8-539/1/a, Metro Pillar No-1115",
+        "line2": "Near Pista House, Chikkadpally",
+        "city": "Hyderabad",
+        "state": "Telangana",
+        "postalCode": "500020",
+        "country": "IN",
+        "full": "H. No 1-8-539/1/a, Metro Pillar No-1115, Near Pista House, Chikkadpally, Hyderabad, Telangana - 500020"
+      },
+      "geo": {
+        "lat": 17.405174930115965,
+        "lng": 78.49652574603265
+      },
+      "mapsUrl": "https://maps.app.goo.gl/XLX7hEATPodxRXa4A",
+      "mapEmbedSrc": "https://www.google.com/maps?q=17.405174930115965,78.49652574603265&z=16&output=embed",
+      "hours": [
+        {
+          "days": "Monday – Sunday",
+          "time": "9:00 AM – 9:00 PM"
+        }
+      ],
+      "notifyEmail": "UNKNOWN — CURRENT FRONTEND DOES NOT PROVIDE THIS",
+      "_addressAttribution": "site.address/geo/mapsUrl/mapEmbedSrc are site-level in the source. Attributed to Chikkadpally because the address text itself says 'Near Pista House, Chikkadpally' and layout.tsx:65-66 pairs this address with branches[0].phone (Chikkadpally) in the JSON-LD, with the code comment: 'The schema's address is the Chikkadpally clinic, so pair its number.'",
+      "_sourceLines": "src/lib/site.ts:39 (branch), :48-56 (address), :57 (geo), :58 (mapsUrl), :59-60 (mapEmbedSrc)"
+    },
+    {
+      "name": "Bowenpally",
+      "slug_NOT_IN_SOURCE": "bowenpally (proposed)",
+      "phone": "+91 70751 57013",
+      "phoneHref": "tel:+917075157013",
+      "whatsapp": "+917075157013",
+      "address": "UNKNOWN — CURRENT FRONTEND DOES NOT PROVIDE THIS",
+      "geo": "UNKNOWN — CURRENT FRONTEND DOES NOT PROVIDE THIS",
+      "mapsUrl": "UNKNOWN — CURRENT FRONTEND DOES NOT PROVIDE THIS",
+      "mapEmbedSrc": "UNKNOWN — CURRENT FRONTEND DOES NOT PROVIDE THIS",
+      "hours": "UNKNOWN — CURRENT FRONTEND DOES NOT PROVIDE THIS (no per-branch hours exist)",
+      "notifyEmail": "UNKNOWN — CURRENT FRONTEND DOES NOT PROVIDE THIS",
+      "_note": "This branch is the DEFAULT WhatsApp and default phone channel (site.whatsapp.number and site.phones[0] are both this number), yet it has no address, coordinates, map or hours anywhere in the frontend.",
+      "_sourceLines": "src/lib/site.ts:40 (branch), :31 (phone entry)"
+    }
+  ],
+  "branchSelectionUI": {
+    "onlyLocation": "src/components/forms/AppointmentForm.tsx:141-163",
+    "behaviour": "Two-step: visitor fills the form, then taps a branch button; that tap opens WhatsApp addressed to THAT branch's number and the payload carries `branch` as the branch NAME string.",
+    "submittedValue": "branch name string - 'Chikkadpally' or 'Bowenpally' (not an id, not a slug)",
+    "whatsappMessageFirstRow": "{ label: 'Branch', value: branch.name }"
+  },
+  "branchAwareDisplaysButNotSelectable": [
+    {
+      "location": "src/components/forms/ContactForm.tsx:21-25",
+      "behaviour": "No branch field. Uses site.whatsapp.number -> BOWENPALLY"
+    },
+    {
+      "location": "src/components/layout/FloatingActions.tsx:8",
+      "behaviour": "WhatsApp FAB -> site.whatsapp.href -> BOWENPALLY"
+    },
+    {
+      "location": "src/components/layout/FloatingActions.tsx:25",
+      "behaviour": "Call FAB -> site.phones[0] -> BOWENPALLY"
+    },
+    {
+      "location": "src/app/services/[slug]/page.tsx:197",
+      "behaviour": "'Ask on WhatsApp' -> default number -> BOWENPALLY"
+    },
+    {
+      "location": "src/app/contact/page.tsx:108",
+      "behaviour": "Hero 'Call' CTA -> site.phones[0] -> BOWENPALLY"
+    },
+    {
+      "location": "src/components/sections/HomeSections.tsx:355",
+      "behaviour": "CtaBand 'Call' -> site.phones[0] -> BOWENPALLY"
+    },
+    {
+      "location": "src/app/services/[slug]/page.tsx:179-190",
+      "behaviour": "'Prefer to call?' lists BOTH phones with branch labels"
+    },
+    {
+      "location": "src/app/careers/page.tsx:101-108",
+      "behaviour": "'Prefer to call?' lists BOTH phones with branch labels"
+    },
+    {
+      "location": "src/components/layout/Footer.tsx:100-110",
+      "behaviour": "Lists BOTH phones with branch labels; address line is Chikkadpally only"
+    },
+    {
+      "location": "src/components/layout/Header.tsx:472-476",
+      "behaviour": "Mobile menu lists BOTH phones as '{branch} · {label}'"
+    },
+    {
+      "location": "src/app/contact/page.tsx:164-170",
+      "behaviour": "Map iframe uses site.mapEmbedSrc -> CHIKKADPALLY only"
+    },
+    {
+      "location": "src/app/layout.tsx:66",
+      "behaviour": "JSON-LD telephone uses branches[0].phone -> CHIKKADPALLY (correctly paired with the Chikkadpally address)"
+    }
+  ],
+  "observedInconsistency": "The site displays the CHIKKADPALLY address and map, but every default-channel action (floating WhatsApp, floating call, contact form, hero call CTA, closing-band call CTA, service-page WhatsApp link) routes to BOWENPALLY. Recorded, NOT changed - it may be deliberate."
+}

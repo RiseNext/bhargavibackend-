@@ -1,0 +1,416 @@
+[
+    {
+        "original":  "/public/images/services/accupressure.jpg",
+        "snapshot":  "assets/services/accupressure.jpg",
+        "category":  "service-image",
+        "status":  "IN USE",
+        "bytes":  115969,
+        "sha256":  "5ACD0DC1D0F0AF99",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/services/acupuncture.jpg",
+        "snapshot":  "assets/services/acupuncture.jpg",
+        "category":  "service-image",
+        "status":  "IN USE",
+        "bytes":  130806,
+        "sha256":  "63151B2FA416433C",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/services/chiropractic.jpg",
+        "snapshot":  "assets/services/chiropractic.jpg",
+        "category":  "service-image",
+        "status":  "IN USE",
+        "bytes":  152107,
+        "sha256":  "BBE686FE50314F45",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/services/cupping-therapy.jpg",
+        "snapshot":  "assets/services/cupping-therapy.jpg",
+        "category":  "service-image",
+        "status":  "IN USE",
+        "bytes":  136009,
+        "sha256":  "3CEC80D6D509504E",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/services/magneto-therapy.jpg",
+        "snapshot":  "assets/services/magneto-therapy.jpg",
+        "category":  "service-image",
+        "status":  "IN USE",
+        "bytes":  157187,
+        "sha256":  "4E2DAF9068B3CDD5",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/services/naturopathy.jpg",
+        "snapshot":  "assets/services/naturopathy.jpg",
+        "category":  "service-image",
+        "status":  "IN USE",
+        "bytes":  158114,
+        "sha256":  "A6933C9C3F90BD70",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/services/nutrition-diet.jpg",
+        "snapshot":  "assets/services/nutrition-diet.jpg",
+        "category":  "service-image",
+        "status":  "IN USE",
+        "bytes":  261313,
+        "sha256":  "F67F8D4325902983",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/services/physiotherapy.jpg",
+        "snapshot":  "assets/services/physiotherapy.jpg",
+        "category":  "service-image",
+        "status":  "IN USE",
+        "bytes":  173619,
+        "sha256":  "ECD250304C40A295",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/services/seed-therapy.jpg",
+        "snapshot":  "assets/services/seed-therapy.jpg",
+        "category":  "service-image",
+        "status":  "IN USE",
+        "bytes":  100426,
+        "sha256":  "BA5E48C085B4D7D3",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/services/varma-kala.jpg",
+        "snapshot":  "assets/services/varma-kala.jpg",
+        "category":  "service-image",
+        "status":  "IN USE",
+        "bytes":  117010,
+        "sha256":  "5C9ECF5F17DBEF5B",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/gallery/i-img-1.jpg",
+        "snapshot":  "assets/gallery/i-img-1.jpg",
+        "category":  "gallery-image",
+        "status":  "IN USE",
+        "bytes":  199243,
+        "sha256":  "7507775FF672228B",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/gallery/i-img-2.jpg",
+        "snapshot":  "assets/gallery/i-img-2.jpg",
+        "category":  "gallery-image",
+        "status":  "IN USE",
+        "bytes":  224915,
+        "sha256":  "1FFA305EC88C5D40",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/gallery/i-img-3.jpg",
+        "snapshot":  "assets/gallery/i-img-3.jpg",
+        "category":  "gallery-image",
+        "status":  "IN USE",
+        "bytes":  177260,
+        "sha256":  "FAE59E48547DD051",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/gallery/i-img-4.jpg",
+        "snapshot":  "assets/gallery/i-img-4.jpg",
+        "category":  "gallery-image",
+        "status":  "IN USE",
+        "bytes":  164888,
+        "sha256":  "93EF578C9C11C2E9",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/gallery/i-img-5.jpg",
+        "snapshot":  "assets/gallery/i-img-5.jpg",
+        "category":  "gallery-image",
+        "status":  "IN USE",
+        "bytes":  208284,
+        "sha256":  "8959B39DD28F1E93",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/gallery/i-img-6.jpg",
+        "snapshot":  "assets/gallery/i-img-6.jpg",
+        "category":  "gallery-image",
+        "status":  "IN USE",
+        "bytes":  158109,
+        "sha256":  "DFB85833FC39BA78",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/gallery/i-img-7.jpg",
+        "snapshot":  "assets/gallery/i-img-7.jpg",
+        "category":  "gallery-image",
+        "status":  "IN USE",
+        "bytes":  166993,
+        "sha256":  "F18073096DAAA134",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/gallery/i-img-8.jpg",
+        "snapshot":  "assets/gallery/i-img-8.jpg",
+        "category":  "gallery-image",
+        "status":  "IN USE",
+        "bytes":  237737,
+        "sha256":  "AE2B391A607CD4E4",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/team/anjana-bhargavi.jpg",
+        "snapshot":  "assets/founder/anjana-bhargavi.jpg",
+        "category":  "founder-photo",
+        "status":  "IN USE",
+        "bytes":  258679,
+        "sha256":  "F71D4E8EA779731E",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/icons/affordable-pricing.png",
+        "snapshot":  "assets/icons/affordable-pricing.png",
+        "category":  "why-choose-us-icon",
+        "status":  "IN USE",
+        "bytes":  13564,
+        "sha256":  "4F64BC0984309503",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/icons/high-industry-standards.png",
+        "snapshot":  "assets/icons/high-industry-standards.png",
+        "category":  "why-choose-us-icon",
+        "status":  "IN USE",
+        "bytes":  10677,
+        "sha256":  "E05E878776B9B157",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/icons/licensed-therapists.png",
+        "snapshot":  "assets/icons/licensed-therapists.png",
+        "category":  "why-choose-us-icon",
+        "status":  "IN USE",
+        "bytes":  10745,
+        "sha256":  "19CF43E33D05F01D",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/icons/personalized-treatment.png",
+        "snapshot":  "assets/icons/personalized-treatment.png",
+        "category":  "why-choose-us-icon",
+        "status":  "IN USE",
+        "bytes":  13545,
+        "sha256":  "1A46D85E86A171DA",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/brand/bhargavi-mark.png",
+        "snapshot":  "assets/brand/bhargavi-mark.png",
+        "category":  "brand-asset",
+        "status":  "IN USE",
+        "bytes":  129138,
+        "sha256":  "A042E5A8282E6731",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/brand/bhargavi-lockup.png",
+        "snapshot":  "assets/brand/bhargavi-lockup.png",
+        "category":  "brand-asset",
+        "status":  "IN USE",
+        "bytes":  22478,
+        "sha256":  "ED510899942FD2A4",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/brand/og-card.png",
+        "snapshot":  "assets/brand/og-card.png",
+        "category":  "brand-asset",
+        "status":  "IN USE",
+        "bytes":  81258,
+        "sha256":  "16676ADAD5F86AF4",
+        "verified":  true
+    },
+    {
+        "original":  "/src/app/icon.png",
+        "snapshot":  "assets/pages/icon.png",
+        "category":  "favicon",
+        "status":  "IN USE (Next.js file convention)",
+        "bytes":  129138,
+        "sha256":  "A042E5A8282E6731",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/brand/bhargavi-health-world.png",
+        "snapshot":  "assets/other/bhargavi-health-world.png",
+        "category":  "brand-variant",
+        "status":  "UNREFERENCED (client-origin)",
+        "bytes":  54789,
+        "sha256":  "CC887FEA4BF0DB3F",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/brand/bhargavi-health-world1.png",
+        "snapshot":  "assets/other/bhargavi-health-world1.png",
+        "category":  "brand-variant",
+        "status":  "UNREFERENCED (client-origin)",
+        "bytes":  1719375,
+        "sha256":  "F61EF9E73F4C6ACC",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/brand/bhargavi-logo-source.png",
+        "snapshot":  "assets/other/bhargavi-logo-source.png",
+        "category":  "brand-variant",
+        "status":  "UNREFERENCED (client-origin)",
+        "bytes":  41360,
+        "sha256":  "4B6F396BDB04B8D6",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/brand/logo1.jpg",
+        "snapshot":  "assets/other/logo1.jpg",
+        "category":  "brand-variant",
+        "status":  "UNREFERENCED (client-origin)",
+        "bytes":  29970,
+        "sha256":  "E3B498FA1C5C3DB7",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/brand/favicon.png",
+        "snapshot":  "assets/other/favicon.png",
+        "category":  "brand-variant",
+        "status":  "UNREFERENCED (client-origin)",
+        "bytes":  19811,
+        "sha256":  "CD3F40815FDD947D",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/yt/yt-1.jpg",
+        "snapshot":  "assets/other/yt-1.jpg",
+        "category":  "youtube-thumb-local",
+        "status":  "UNREFERENCED (client-origin)",
+        "bytes":  25592,
+        "sha256":  "519310FE899637F0",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/yt/yt-2.jpg",
+        "snapshot":  "assets/other/yt-2.jpg",
+        "category":  "youtube-thumb-local",
+        "status":  "UNREFERENCED (client-origin)",
+        "bytes":  21635,
+        "sha256":  "293FBC5479F03F82",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/yt/yt-3.jpg",
+        "snapshot":  "assets/other/yt-3.jpg",
+        "category":  "youtube-thumb-local",
+        "status":  "UNREFERENCED (client-origin)",
+        "bytes":  24282,
+        "sha256":  "D8A7D83546F566AB",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/yt/yt-4.jpg",
+        "snapshot":  "assets/other/yt-4.jpg",
+        "category":  "youtube-thumb-local",
+        "status":  "UNREFERENCED (client-origin)",
+        "bytes":  22249,
+        "sha256":  "5963BDD188A72FC5",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/yt/yt-5.jpg",
+        "snapshot":  "assets/other/yt-5.jpg",
+        "category":  "youtube-thumb-local",
+        "status":  "UNREFERENCED (client-origin)",
+        "bytes":  17278,
+        "sha256":  "59C3D5D1C4B62F3E",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/yt/yt-6.jpg",
+        "snapshot":  "assets/other/yt-6.jpg",
+        "category":  "youtube-thumb-local",
+        "status":  "UNREFERENCED (client-origin)",
+        "bytes":  22657,
+        "sha256":  "B3FB86E7198F2EB7",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/bg/bg.jpg",
+        "snapshot":  "assets/other/bg.jpg",
+        "category":  "background-image",
+        "status":  "UNREFERENCED (client-origin)",
+        "bytes":  369900,
+        "sha256":  "4581C94D2D721B25",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/bg/form-bg.jpg",
+        "snapshot":  "assets/other/form-bg.jpg",
+        "category":  "background-image",
+        "status":  "UNREFERENCED (client-origin)",
+        "bytes":  246230,
+        "sha256":  "9E7893094981A427",
+        "verified":  true
+    },
+    {
+        "original":  "/public/images/bg/serv-bg.jpg",
+        "snapshot":  "assets/other/serv-bg.jpg",
+        "category":  "background-image",
+        "status":  "UNREFERENCED (client-origin)",
+        "bytes":  264696,
+        "sha256":  "8457DBA31FE2ADF4",
+        "verified":  true
+    },
+    {
+        "original":  "/public/file.svg",
+        "snapshot":  "assets/other/file.svg",
+        "category":  "create-next-app-boilerplate",
+        "status":  "UNREFERENCED (framework boilerplate, not client content)",
+        "bytes":  391,
+        "sha256":  "2B67812C325C199A",
+        "verified":  true
+    },
+    {
+        "original":  "/public/globe.svg",
+        "snapshot":  "assets/other/globe.svg",
+        "category":  "create-next-app-boilerplate",
+        "status":  "UNREFERENCED (framework boilerplate, not client content)",
+        "bytes":  1035,
+        "sha256":  "B614B9BF18392595",
+        "verified":  true
+    },
+    {
+        "original":  "/public/next.svg",
+        "snapshot":  "assets/other/next.svg",
+        "category":  "create-next-app-boilerplate",
+        "status":  "UNREFERENCED (framework boilerplate, not client content)",
+        "bytes":  1375,
+        "sha256":  "55995DFAD6ECB494",
+        "verified":  true
+    },
+    {
+        "original":  "/public/vercel.svg",
+        "snapshot":  "assets/other/vercel.svg",
+        "category":  "create-next-app-boilerplate",
+        "status":  "UNREFERENCED (framework boilerplate, not client content)",
+        "bytes":  128,
+        "sha256":  "F081337B2FEE635B",
+        "verified":  true
+    },
+    {
+        "original":  "/public/window.svg",
+        "snapshot":  "assets/other/window.svg",
+        "category":  "create-next-app-boilerplate",
+        "status":  "UNREFERENCED (framework boilerplate, not client content)",
+        "bytes":  385,
+        "sha256":  "644768C4AAEB4767",
+        "verified":  true
+    }
+]

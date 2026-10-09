@@ -1,0 +1,122 @@
+{
+  "_meta": {
+    "_extractedFrom": "src/components/layout/Footer.tsx (127 lines) and src/components/layout/FloatingActions.tsx (39 lines)",
+    "_note": "Verbatim. The footer is a server component with no props.",
+    "_sourceFileComment": "Deliberately short: brand, one row of links, the details someone actually needs to visit or call, and a thin legal line."
+  },
+
+  "brand": {
+    "logo": { "src": "/images/brand/bhargavi-mark.png", "srcJsx": "site.logo", "alt": "", "width": 40, "height": 40 },
+    "name": "Bhargavi Health World",
+    "nameJsx": "site.name",
+    "href": "/"
+  },
+
+  "socialIcons": {
+    "_source": "src/components/layout/Footer.tsx:6-22",
+    "_note": "Hardcoded inline SVG map keyed by platform NAME. Only three glyphs exist.",
+    "availableIconKeys": ["Facebook", "Instagram", "YouTube"],
+    "fallbackBehaviour": "A platform with no matching icon renders a 2-letter text badge: `{s.name.slice(0, 2)}` (Footer.tsx:67-69)",
+    "renderedLinks": [
+      { "name": "Facebook", "href": "https://www.facebook.com/Bhargavihealthworld", "screenReaderLabel": "Facebook" },
+      { "name": "Instagram", "href": "https://www.instagram.com/bhargavihealthworld/", "screenReaderLabel": "Instagram" },
+      { "name": "YouTube", "href": "https://www.youtube.com/@bhargavihealthworld8686", "screenReaderLabel": "YouTube" }
+    ],
+    "linkAttributes": "target=\"_blank\" rel=\"noopener noreferrer\""
+  },
+
+  "exploreNav": {
+    "_source": "src/components/layout/Footer.tsx:24-33",
+    "_warning": "SEPARATE hardcoded list — NOT site.nav. It is flat (no nesting) and splits 'Media' into 'Gallery' and 'Health Talks'.",
+    "heading": "Explore",
+    "ariaLabel": "Footer",
+    "items": [
+      { "label": "About", "href": "/about" },
+      { "label": "Services", "href": "/services" },
+      { "label": "Gallery", "href": "/gallery" },
+      { "label": "Health Talks", "href": "/videos" },
+      { "label": "Testimonials", "href": "/testimonials" },
+      { "label": "Blog", "href": "/blog" },
+      { "label": "Careers", "href": "/careers" },
+      { "label": "Contact", "href": "/contact" }
+    ],
+    "itemCount": 8,
+    "_differenceFromPrimaryNav": "Primary nav has 'Home' and a nested 'Media' group; the footer drops 'Home' and lists Gallery + Health Talks as siblings."
+  },
+
+  "visitBlock": {
+    "heading": "Visit",
+    "element": "<address className=\"not-italic\">",
+    "addressLineJsx": "{site.address.line1}, {site.address.city} – {site.address.postalCode}",
+    "addressLineRendered": "H. No 1-8-539/1/a, Metro Pillar No-1115, Hyderabad – 500020",
+    "_addressNote": "Footer uses line1 + city + postalCode ONLY — it omits line2 ('Near Pista House, Chikkadpally'), unlike the /contact card which shows all three.",
+    "phonesJsx": "site.phones.map(p => <span>{p.branch} · <a href={p.href}>{p.label}</a></span>)",
+    "phonesRendered": [
+      { "branch": "Bowenpally", "label": "+91 70751 57013", "href": "tel:+917075157013" },
+      { "branch": "Chikkadpally", "label": "+91 98663 76203", "href": "tel:+919866376203" }
+    ],
+    "emailJsx": "<a href={`mailto:${site.email}`}>{site.email}</a>",
+    "emailRendered": "bhargavihealthworld@gmail.com",
+    "hoursJsx": "site.hours.map(h => `${h.days} ${h.time}`).join(\" · \")",
+    "hoursRendered": "Monday – Sunday 9:00 AM – 9:00 PM"
+  },
+
+  "legalBar": {
+    "copyrightJsx": "© {new Date().getFullYear()} {site.name}. All rights reserved.",
+    "copyrightRendered2026": "© 2026 Bhargavi Health World. All rights reserved.",
+    "_copyrightNote": "Year is computed at render time, not hardcoded.",
+    "disclaimer": "Complementary therapies. Not a substitute for medical advice.",
+    "_disclaimerNote": "HARDCODED at Footer.tsx:129. This is the only legal/medical disclaimer in the footer. There are no links to a privacy policy or terms (none exist).",
+    "legalLinks": "NONE — no privacy policy, terms or cookie links exist"
+  },
+
+  "newsletter": {
+    "_status": "NOT PRESENT IN THE FOOTER",
+    "_note": "NewsletterForm.tsx exists (79 lines) but is imported by NO file — verified zero importers. It is styled for a dark background (ivory text), which suggests the footer was the intended location. Owner decision D-012: DEFERRED / REQUIRES CLIENT CONFIRMATION. Code and content preserved below and in pages/other-pages.md; not deleted.",
+    "componentContent": {
+      "screenReaderLabel": "Email address",
+      "inputPlaceholder": "your@email.com",
+      "inputType": "email",
+      "inputRequired": true,
+      "submitLabelIdle": "Subscribe",
+      "submitLabelSending": "Sending",
+      "successMessage": "You're on the list — thank you.",
+      "errorMessage": "That didn't go through. Please try again.",
+      "payloadKind": "newsletter",
+      "endpoint": "POST /api/contact"
+    }
+  },
+
+  "floatingActions": {
+    "_source": "src/components/layout/FloatingActions.tsx",
+    "_sourceFileComment": "Persistent WhatsApp + call shortcuts. Most traffic here is mobile.",
+    "_renderedOn": "every page (mounted in the root layout)",
+    "whatsappButton": {
+      "href": "https://api.whatsapp.com/send?phone=+917075157013&text=hello&lang=en",
+      "hrefJsx": "site.whatsapp.href",
+      "screenReaderLabel": "Chat with us on WhatsApp",
+      "brandColour": "#25D366",
+      "_target": "BOWENPALLY number"
+    },
+    "callButton": {
+      "href": "tel:+917075157013",
+      "hrefJsx": "site.phones[0].href",
+      "screenReaderLabel": "Call +91 70751 57013",
+      "screenReaderLabelJsx": "Call {site.phones[0].label}",
+      "_visibility": "Hidden from the `sm` breakpoint up (mobile only)",
+      "_target": "BOWENPALLY number"
+    },
+    "printBehaviour": "print:hidden"
+  },
+
+  "preloader": {
+    "_source": "src/components/layout/Preloader.tsx",
+    "_sourceFileComment": "First-load curtain. Renders on the server too, so it is painted in the very first frame rather than flashing in after hydration — which is the whole point of a loading screen.",
+    "logoLockup": { "src": "/images/brand/bhargavi-lockup.png", "srcJsx": "site.logoLockup", "alt": "", "width": 510, "height": 456, "unoptimized": true },
+    "screenReaderStatusLoading": "Loading Bhargavi Health World",
+    "screenReaderStatusLoadingJsx": "`Loading ${site.name}`",
+    "screenReaderStatusLoaded": "Loaded",
+    "timings": { "minVisibleMs": 1200, "exitMs": 820, "safetyTimeoutMs": 6000 },
+    "noscriptBehaviour": "#preloader{display:none!important} — hidden outright without JS"
+  }
+}

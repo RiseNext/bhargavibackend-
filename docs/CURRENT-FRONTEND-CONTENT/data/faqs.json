@@ -1,0 +1,47 @@
+{
+  "_meta": {
+    "_extractedFrom": "src/content/site-content.ts:77-108",
+    "_note": "Verbatim. Rendered on /, /services, /contact AND emitted as FAQPage JSON-LD on / - so answers must stay plain text.",
+    "count": 6,
+    "fieldsPresentInSource": [
+      "question",
+      "answer"
+    ],
+    "fieldsNOTinSource": [
+      "sortOrder",
+      "published",
+      "category"
+    ],
+    "embeddedSettingsWarning": [
+      "FAQ index 3 (\"Do I need an appointment...\") hardcodes the phone number '+91 70751 57013' inside its answer.",
+      "FAQ index 4 (\"What are your timings?\") restates the opening hours '9:00 AM – 9:00 PM' inside its answer."
+    ],
+    "orderIsSignificant": true
+  },
+  "faqs": [
+    {
+      "question": "How many sessions are needed for acupuncture to be effective?",
+      "answer": "The number of sessions required varies by individual and condition, but many people notice improvements after 2–4 sessions, with chronic issues potentially requiring more frequent visits."
+    },
+    {
+      "question": "What conditions can seed therapy help with?",
+      "answer": "Seed therapy is often used to help with issues such as stress, anxiety, chronic pain, digestive problems, and respiratory issues, although its effectiveness can vary based on the individual."
+    },
+    {
+      "question": "Is physiotherapy painful?",
+      "answer": "While some techniques may cause mild discomfort, physiotherapy should not be excessively painful. Your therapist will work with you to ensure the treatment is within your comfort levels while still being effective."
+    },
+    {
+      "question": "Do I need an appointment, or can I walk in?",
+      "answer": "Walk-ins are welcome during clinic hours, but booking ahead means you won't wait. Call or WhatsApp +91 70751 57013 to reserve a slot."
+    },
+    {
+      "question": "What are your timings?",
+      "answer": "Every day, Monday to Sunday, 9:00 AM – 9:00 PM."
+    },
+    {
+      "question": "Can these therapies be taken alongside my existing medication?",
+      "answer": "In most cases, yes — these are complementary therapies, not replacements for medical treatment. Bring your current prescriptions to your first consultation so your plan can be built around them."
+    }
+  ]
+}

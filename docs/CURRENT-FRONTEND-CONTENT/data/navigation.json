@@ -1,0 +1,114 @@
+{
+  "_meta": {
+    "_extractedFrom": "src/lib/site.ts:92-108 (nav), src/components/layout/Header.tsx, src/components/layout/Footer.tsx:24-33 (explore)",
+    "_note": "THREE independent navigation definitions exist. All preserved — none is authoritative over the others.",
+    "_warning": "site.nav and Footer.explore are separate hardcoded lists with different shapes and different link sets."
+  },
+
+  "primaryNav": {
+    "_source": "src/lib/site.ts:92-108",
+    "_consumedBy": "Header.tsx desktop nav and mobile menu",
+    "items": [
+      { "label": "Home", "href": "/" },
+      { "label": "About", "href": "/about" },
+      { "label": "Services", "href": "/services" },
+      {
+        "label": "Media",
+        "href": "/gallery",
+        "children": [
+          { "label": "Clinic Gallery", "href": "/gallery" },
+          { "label": "Health Talks", "href": "/videos" }
+        ]
+      },
+      { "label": "Testimonials", "href": "/testimonials" },
+      { "label": "Blog", "href": "/blog" },
+      { "label": "Careers", "href": "/careers" },
+      { "label": "Contact", "href": "/contact" }
+    ],
+    "itemCount": 8
+  },
+
+  "servicesDropdown": {
+    "_source": "src/components/layout/Header.tsx:15-18",
+    "_note": "DERIVED at runtime from the services collection — not a hardcoded list.",
+    "generator": "services.map((s) => ({ label: s.title, href: `/services/${s.slug}` }))",
+    "sourceFileComment": "Titles only. The durations read as a ragged second column here — they belong on the service card, not in a ten-row menu.",
+    "renderedItems": [
+      { "label": "Acupuncture", "href": "/services/acupuncture" },
+      { "label": "Acupressure", "href": "/services/acupressure" },
+      { "label": "Naturopathy Consultation", "href": "/services/naturopathy-consultation" },
+      { "label": "Nutrition & Diet", "href": "/services/nutrition-and-diet" },
+      { "label": "Seed Therapy", "href": "/services/seed-therapy" },
+      { "label": "Cupping Therapy", "href": "/services/cupping-therapy" },
+      { "label": "Magneto Therapy", "href": "/services/magneto-therapy" },
+      { "label": "Chiropractic", "href": "/services/chiropractic" },
+      { "label": "Physiotherapy", "href": "/services/physiotherapy" },
+      { "label": "Varma Kala", "href": "/services/varma-kala" }
+    ],
+    "footerLink": { "label": "All 10 therapies", "labelJsx": "All {children.length} therapies", "href": "/services" },
+    "_note2": "The Services trigger is a <button>, so this dropdown footer link is the ONLY desktop route to /services."
+  },
+
+  "header": {
+    "_source": "src/components/layout/Header.tsx",
+    "skipLink": "Skip to content",
+    "logo": {
+      "src": "/images/brand/bhargavi-mark.png",
+      "srcJsx": "site.logo",
+      "alt": "",
+      "_altNote": "Empty alt — decorative, because the wordmark text sits beside it",
+      "href": "/"
+    },
+    "wordmark": {
+      "line1": "Bhargavi",
+      "line2": "Health World",
+      "_warning": "HARDCODED as two separate spans at Header.tsx:187 and :190. Does NOT read from site.name or site.shortName. An admin changing the business name would NOT change the header."
+    },
+    "primaryCta": { "label": "Book Appointment", "href": "/contact", "_note": "Hidden below the `sm` breakpoint" },
+    "mobileMenuButton": { "screenReaderLabel": "Open menu" },
+    "mobileMenu": {
+      "panelLabel": "Menu",
+      "closeScreenReaderLabel": "Close menu",
+      "ariaLabel": "Site menu",
+      "navAriaLabel": "Mobile",
+      "_note": "Renders only top-level nav items with a zero-padded index (01, 02, ...). Sub-lists are deliberately omitted — source comment: 'the Services and Media sub-lists would swamp a phone screen; they live on their own pages.'",
+      "footerCta": { "label": "Book Appointment", "href": "/contact" },
+      "footerPhones": "site.phones.map(p => `${p.branch} · ${p.label}`)",
+      "footerPhonesRendered": ["Bowenpally · +91 70751 57013", "Chikkadpally · +91 98663 76203"]
+    },
+    "desktopNavAriaLabel": "Main",
+    "behaviour": {
+      "_note": "Design behaviour recorded for completeness — NOT to be changed (owner decision D-010)",
+      "scrolledThreshold": "y > 16 → translucent background",
+      "hideAfter": "160px scroll depth before hide-on-scroll-down activates",
+      "dirThreshold": "6px of scroll jitter ignored",
+      "readingProgressBar": "Fills left-to-right across the header, visible only when scrolled"
+    }
+  },
+
+  "breadcrumbs": {
+    "_source": "src/components/ui/PageHero.tsx:38-59 and src/app/services/[slug]/page.tsx:60-82",
+    "_note": "Rendered visually on 7 pages. NO BreadcrumbList structured data is emitted.",
+    "separator": "/",
+    "ariaLabel": "Breadcrumb",
+    "perPage": {
+      "/about": ["Home", "About"],
+      "/services": ["Home", "Services"],
+      "/services/[slug]": ["Home", "Services", "<service.title>"],
+      "/gallery": ["Home", "Media", "Clinic Gallery"],
+      "/videos": ["Home", "Media", "Health Talks"],
+      "/testimonials": ["Home", "Testimonials"],
+      "/blog": ["Home", "Blog"],
+      "/contact": ["Home", "Contact"]
+    },
+    "_hrefNote": "On /gallery and /videos the 'Media' crumb links to /gallery (there is no /media route)."
+  },
+
+  "legalPages": {
+    "_status": "NONE EXIST",
+    "_note": "There is no /privacy, no /terms, no cookie notice and no legal navigation anywhere in the frontend. The appointment form's consent checkbox links to nothing. Recorded as a fact, not invented.",
+    "privacyPolicy": "UNKNOWN — CURRENT FRONTEND DOES NOT PROVIDE THIS",
+    "termsOfService": "UNKNOWN — CURRENT FRONTEND DOES NOT PROVIDE THIS",
+    "cookieNotice": "UNKNOWN — CURRENT FRONTEND DOES NOT PROVIDE THIS"
+  }
+}

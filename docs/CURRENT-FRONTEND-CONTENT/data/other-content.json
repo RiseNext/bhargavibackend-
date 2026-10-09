@@ -1,0 +1,246 @@
+{
+  "_meta": {
+    "_note": "Everything visitor-visible that is not a content collection, a page section or SEO metadata: form copy, WhatsApp message templates, UI chrome strings, and the API contract. Verbatim.",
+    "_why": "Form labels and success messages are client-facing copy. If the frontend is ever rebuilt, these must be recoverable."
+  },
+
+  "forms": {
+    "_sharedPrimitives": {
+      "_source": "src/components/forms/fields.tsx",
+      "requiredMarker": "*",
+      "requiredMarkerJsx": "<span className=\"text-terracotta\" aria-hidden=\"true\">*</span>",
+      "errorFallbackMessage": "Something went wrong. Please call us on +91 70751 57013 instead.",
+      "_errorFallbackNote": "HARDCODED phone number at fields.tsx:174. Shown for ANY form failure. The API's `error` string is NEVER rendered — only the HTTP status is read.",
+      "statusRole": "role=\"status\""
+    },
+
+    "appointmentForm": {
+      "_source": "src/components/forms/AppointmentForm.tsx",
+      "_renderedOn": ["/", "/contact", "all 10 /services/[slug] pages"],
+      "_sourceFileComment": "Appointment request, delivered over WhatsApp. Two steps: the visitor fills in their details, then picks which branch they want. Their WhatsApp opens with the whole request composed, addressed to that branch's number; they press send. It arrives from their own number, so the reply goes straight back in the same thread. /api/contact is still pinged in the background purely as a server-side record — it is not the delivery path.",
+      "fields": [
+        { "label": "Your name", "name": "name", "type": "text", "required": true, "autoComplete": "name" },
+        { "label": "Phone", "name": "phone", "type": "tel", "required": true, "autoComplete": "tel", "inputMode": "tel" },
+        { "label": "Email", "name": "email", "type": "email", "required": false, "autoComplete": "email" },
+        { "label": "Therapy of interest", "name": "service", "type": "select", "required": false, "emptyOptionLabel": "Not sure — please advise", "options": "services.map(s => ({ value: s.slug, label: s.title }))" },
+        { "label": "Preferred date & time", "name": "datetime", "type": "datetime-local", "required": false },
+        { "label": "What would you like help with?", "name": "message", "type": "textarea", "required": false, "placeholder": "Briefly describe your symptoms…" },
+        { "label": "I agree to be contacted about my appointment request.", "name": "consent", "type": "checkbox", "required": true, "_note": "Submits as the literal string \"on\". Links to nothing — no privacy policy exists." }
+      ],
+      "submitLabel": "Send on WhatsApp",
+      "branchStepLabel": "One last step",
+      "branchStepQuestion": "Which branch would you like to visit?",
+      "branchStepLegendScreenReader": "Choose your branch",
+      "branchButtonContent": "{branch.name} on one line, {branch.phone} beneath, with a → arrow",
+      "backLink": "← Back to edit details",
+      "successText": "Your request is ready in WhatsApp — press send there and we'll call you back shortly.",
+      "fallbackLink": "WhatsApp didn't open? Tap here",
+      "fallbackLinkJsx": "WhatsApp didn&apos;t open? Tap here",
+      "whatsappMessageHeading": "New appointment request",
+      "whatsappMessageRows": ["Branch", "Name", "Phone", "Email", "Therapy", "Preferred time", "Concern"],
+      "whatsappTherapyFallback": "Not sure — please advise",
+      "payloadKind": "appointment",
+      "_criticalConstraint": "AppointmentForm.tsx:46-48 — 'Step 2 — the branch tap is the user gesture that opens WhatsApp. Must stay synchronous: an async gap here loses the gesture context and the browser blocks the tab.' The /api/contact call is fire-and-forget AFTER window.open: 'void fetch(...).catch(() => {})' with the comment 'Background record only; never let a failure here affect the handover.'"
+    },
+
+    "contactForm": {
+      "_source": "src/components/forms/ContactForm.tsx",
+      "_renderedOn": ["/contact (dark tone)"],
+      "_sourceFileComment": "Same WhatsApp handover as the appointment form — see AppointmentForm.",
+      "fields": [
+        { "label": "Your name", "name": "name", "type": "text", "required": true, "autoComplete": "name" },
+        { "label": "Phone", "name": "phone", "type": "tel", "required": true, "autoComplete": "tel", "inputMode": "tel" },
+        { "label": "Email", "name": "email", "type": "email", "required": false, "autoComplete": "email" },
+        { "label": "Message", "name": "message", "type": "textarea", "required": true, "rows": 4 }
+      ],
+      "submitLabel": "Send on WhatsApp",
+      "successText": "Your message is ready in WhatsApp — press send there and we'll reply soon.",
+      "fallbackLink": "WhatsApp didn't open? Tap here",
+      "whatsappMessageHeading": "Website enquiry",
+      "whatsappMessageRows": ["Name", "Phone", "Email", "Message"],
+      "payloadKind": "contact",
+      "_consentNote": "NO consent checkbox on this form — unlike the appointment form.",
+      "_branchNote": "NO branch selection. Uses site.whatsapp.number (the BOWENPALLY number)."
+    },
+
+    "careerForm": {
+      "_source": "src/components/forms/CareerForm.tsx",
+      "_renderedOn": ["/careers — inside a per-role modal, and in the #apply section with role=\"General application\""],
+      "fields": [
+        { "label": "Your name", "name": "name", "type": "text", "required": true, "autoComplete": "name" },
+        { "label": "Phone", "name": "phone", "type": "tel", "required": true, "autoComplete": "tel", "inputMode": "tel" },
+        { "label": "Email", "name": "email", "type": "email", "required": false, "autoComplete": "email", "_note": "OPTIONAL — an application can arrive with no email address at all" },
+        { "label": "Role applying for", "name": "role", "type": "select", "required": true, "options": "jobs.map(j => ({ value: j.title, label: j.title })) + { value: 'General application' }", "_note": "Submits the job TITLE string, not the slug" },
+        { "label": "Experience", "name": "experience", "type": "text", "required": false, "placeholder": "e.g. 2 years, fresher" },
+        { "label": "Why you?", "name": "message", "type": "textarea", "required": true, "rows": 4, "placeholder": "A few lines about yourself and your work" }
+      ],
+      "submitLabelIdle": "Submit application",
+      "submitLabelSending": "Submitting…",
+      "successText": "Thank you — your application is in. Email your resume to bhargavihealthworld@gmail.com with the role in the subject line.",
+      "successTextJsx": "`Thank you — your application is in. Email your resume to ${site.email} with the role in the subject line.`",
+      "payloadKind": "career",
+      "_resumeNote": "NO file input exists anywhere in the frontend. The email-CV instruction appears in THREE places: careers/page.tsx:70-72, careers/page.tsx:92-96, and this success message. Owner decision D-008: both upload and email options will be supported; the existing email workflow is NOT removed.",
+      "_responseNote": "This form AWAITS the response and throws on !res.ok — unlike the appointment and contact forms. A 5xx shows the error panel. No WhatsApp fallback exists for careers."
+    },
+
+    "newsletterForm": {
+      "_source": "src/components/forms/NewsletterForm.tsx",
+      "_status": "NOT RENDERED ON ANY PAGE — verified zero importers. Owner decision D-012: DEFERRED / REQUIRES CLIENT CONFIRMATION. Code and copy preserved; not deleted.",
+      "fields": [
+        { "label": "Email address", "name": "email", "type": "email", "required": true, "placeholder": "your@email.com", "_labelNote": "sr-only" }
+      ],
+      "submitLabelIdle": "Subscribe",
+      "submitLabelSending": "Sending",
+      "successText": "You're on the list — thank you.",
+      "errorText": "That didn't go through. Please try again.",
+      "payloadKind": "newsletter",
+      "_styling": "Styled for a dark ground (ivory text, transparent input) — consistent with an intended footer placement."
+    },
+
+    "whatsappUrlBuilder": {
+      "_source": "src/lib/whatsapp.ts",
+      "_verbatimCopyAt": "../source/lib/whatsapp.ts",
+      "messageFormat": "*<heading>*\\n\\n*<label>:* <value>\\n*<label>:* <value>…",
+      "messageFormatNoRows": "*<heading>*",
+      "emptyRowHandling": "Rows with null/empty/whitespace-only values are filtered out before building the message.",
+      "urlTemplate": "https://wa.me/<digits-only-phone>?text=<urlencoded message>",
+      "defaultPhone": "site.whatsapp.number → +917075157013 (Bowenpally)",
+      "dateTimeFormatter": "Intl.DateTimeFormat('en-IN', { dateStyle: 'medium', timeStyle: 'short' })",
+      "_dateTimeNote": "formatDateTime() converts the naive datetime-local value (e.g. '2026-09-25T15:30') into a readable string for the message.",
+      "headingsUsed": [
+        "New appointment request  (AppointmentForm)",
+        "Website enquiry  (ContactForm)",
+        "Enquiry about <service.title>  (service detail page 'Ask on WhatsApp')"
+      ]
+    }
+  },
+
+  "apiContract": {
+    "_source": "src/app/api/contact/route.ts",
+    "_verbatimCopyAt": "../source/app/api-contact-route.ts",
+    "_status": "STUB — validates, console.info()s, returns. Nothing is stored. Nothing is emailed.",
+    "_sourceFileComment": "STUB endpoint for the appointment / contact / newsletter forms. It validates the payload and logs it so the frontend can be built and demoed end-to-end. It does NOT deliver mail yet — the old site used a PHP `mail()` script. Wire this to the client's chosen provider (Resend, SMTP, form service) before launch. See docs/CONTENT-TODO.md.",
+    "method": "POST",
+    "path": "/api/contact",
+    "contentType": "application/json",
+    "kindDefault": "contact",
+    "responses": [
+      { "condition": "Malformed JSON", "status": 400, "body": { "error": "Invalid JSON body." } },
+      { "condition": "kind=newsletter and email invalid/missing", "status": 422, "body": { "error": "A valid email address is required." } },
+      { "condition": "other kinds: name or phone blank", "status": 422, "body": { "error": "Name and phone number are required." } },
+      { "condition": "other kinds: email present but invalid", "status": 422, "body": { "error": "That email address doesn't look right." } },
+      { "condition": "success", "status": 200, "body": { "ok": true, "kind": "<kind>" } }
+    ],
+    "emailRegex": "/^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/",
+    "logLine": "console.info(\"[form:%s] %o\", kind, body)",
+    "_careerNote": "kind=\"career\" is handled only by accident — it falls through to the generic name/phone branch, so role, experience and message are unvalidated.",
+    "_absent": ["rate limiting", "body size cap", "honeypot", "persistence", "notification", "CSRF protection"]
+  },
+
+  "uiChromeStrings": {
+    "_note": "Screen-reader labels, dialog labels and navigation affordances. Not client content, but visitor-facing and part of the current build. Recorded for completeness.",
+    "skipLink": "Skip to content",
+    "header": { "openMenu": "Open menu", "closeMenu": "Close menu", "menuPanelLabel": "Menu", "dialogAriaLabel": "Site menu", "navLabels": ["Main", "Mobile", "Footer", "Breadcrumb"] },
+    "serviceCard": { "hoverPill": "View therapy" },
+    "testimonialCard": {
+      "starsAriaLabel": "Rated 5 out of 5",
+      "_starsNote": "A HARDCODED 5-star graphic renders on EVERY testimonial. No rating field exists in the data.",
+      "avatarContent": "Initials derived from the first two words of the author's name, uppercased"
+    },
+    "galleryLightbox": {
+      "thumbnailScreenReader": "Open image <n> full size",
+      "dialogAriaLabel": "Image viewer",
+      "closeLabel": "Close",
+      "prevLabel": "Previous image",
+      "nextLabel": "Next image",
+      "counter": "<index+1> / <total>",
+      "keyboard": "Escape closes; ArrowLeft/ArrowRight step"
+    },
+    "rail": { "nextLabel": "Next", "prevLabel": "Previous", "regionLabelProp": "label (e.g. \"Therapies\")" },
+    "jobOpeningsModal": { "label": "Apply", "ariaLabel": "Apply — <job.title>", "closeLabel": "Close" },
+    "preloader": { "loading": "Loading Bhargavi Health World", "loaded": "Loaded" },
+    "floatingActions": { "whatsapp": "Chat with us on WhatsApp", "call": "Call +91 70751 57013" },
+    "openStatus": {
+      "_source": "src/components/ui/OpenStatus.tsx",
+      "openFormat": "Open until 9:00 PM",
+      "beforeOpenFormat": "Opens at 9:00 AM",
+      "afterCloseFormat": "Opens tomorrow, 9:00 AM",
+      "timezone": "Asia/Kolkata",
+      "refreshInterval": "60000ms",
+      "_sourceFileComment": "Live \"are they open right now\" badge, evaluated in the clinic's timezone rather than the visitor's — someone checking from another state should see whether Chikkadpally is open, not their own local hours. Mirrors `site.hours`. Keep the two in step if the hours ever change."
+    }
+  },
+
+  "deadOrUnusedContent": {
+    "_note": "Content that exists in the source but is not reachable by a visitor. Preserved because it is client-facing copy that was written, and because the owner decision is to lose nothing.",
+    "items": [
+      {
+        "name": "GalleryRail",
+        "source": "src/components/sections/HomeSections.tsx:425-456",
+        "status": "Exported, never imported (verified zero importers)",
+        "content": "label 'Inside the clinic', title 'A calm, private place to heal', action 'View gallery' → /gallery",
+        "capturedIn": "data/page-content.json → home.slots.galleryRail"
+      },
+      {
+        "name": "treatmentsIntro",
+        "source": "src/content/site-content.ts:59",
+        "status": "Exported, never imported (verified zero importers)",
+        "content": "A full paragraph of real client-facing copy about alternative medicine. Preserved verbatim in ../source/content/site-content.ts.",
+        "note": "The home TherapyIndex section uses its own hardcoded lead instead."
+      },
+      {
+        "name": "NewsletterForm",
+        "source": "src/components/forms/NewsletterForm.tsx",
+        "status": "Written, rendered on no page",
+        "capturedIn": "data/other-content.json → forms.newsletterForm and data/footer.json → newsletter"
+      },
+      {
+        "name": "DottedRule",
+        "source": "src/components/ui/Decor.tsx:77-87",
+        "status": "Exported decorative component; not referenced by any page",
+        "content": "No text content — pure decoration"
+      },
+      {
+        "name": "Job.slug",
+        "source": "src/content/careers.ts:11",
+        "status": "Field populated on all 6 jobs but unused — 'Reserved for a future /careers/[slug] detail page'. No such route exists.",
+        "capturedIn": "data/jobs.json"
+      },
+      {
+        "name": "site.shortName",
+        "source": "src/lib/site.ts:9",
+        "status": "Defined as 'Bhargavi' but not referenced anywhere (the header hardcodes its own 'Bhargavi' / 'Health World' split)",
+        "capturedIn": "data/site-settings.json"
+      },
+      {
+        "name": "NavItem.hint",
+        "source": "src/lib/site.ts:84 (NavChild type) and Header.tsx:298-302 (renderer)",
+        "status": "Optional field supported by the type and rendered by the header, but no nav item uses it",
+        "content": "No current value"
+      }
+    ]
+  },
+
+  "developerTooling": {
+    "_note": "Not client content. Recorded so the inventory is complete and nothing is mistaken for content later.",
+    "scripts": [
+      { "file": "scripts/audit.mjs", "lines": 109, "npmScript": "audit:responsive", "purpose": "Responsive screenshot audit using puppeteer-core. Output goes to /.audit (gitignored)." },
+      { "file": "scripts/crops.mjs", "lines": 44, "npmScript": "shots", "purpose": "Screenshot/crop helper using puppeteer-core." }
+    ],
+    "configFiles": ["next.config.ts", "tsconfig.json", "eslint.config.mjs", "postcss.config.mjs", "package.json", ".gitignore", ".env.example", ".claude/settings.json"],
+    "styleSheet": { "file": "src/app/globals.css", "lines": 538, "purpose": "Tailwind v4 theme: design tokens, colour variables, type scale, preloader keyframes, .prose styles, .rail utilities. DESIGN — explicitly out of scope for migration per owner decision D-010." },
+    "frontendOwnDocs": ["README.md (131 lines)", "backendprd.md (219 lines — superseded)", "docs/PRD.md", "docs/CONTENT-TODO.md", "docs/textprd.md"]
+  },
+
+  "environmentVariables": {
+    "_source": "frontend/.env.example",
+    "active": [
+      { "name": "NEXT_PUBLIC_SITE_URL", "status": "commented out in the example; read at src/lib/site.ts:18 with a literal fallback", "value": "https://www.bhargavihealthworld.com", "purpose": "Drives metadataBase, canonical tags, sitemap.xml and robots.txt. No trailing slash." }
+    ],
+    "sketchedNotWired": [
+      { "name": "RESEND_API_KEY", "status": "commented out, not used by any code", "value": "" },
+      { "name": "CONTACT_TO_EMAIL", "status": "commented out, not used by any code", "value": "bhargavihealthworld@gmail.com" }
+    ],
+    "_exampleFileComment": "The appointment / contact forms POST to /api/contact, which currently only validates and logs. Nothing is delivered. Before launch, pick a provider and add its key here plus the delivery call in src/app/api/contact/route.ts."
+  }
+}

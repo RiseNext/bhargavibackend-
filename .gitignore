@@ -1,0 +1,69 @@
+# Dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Build output
+/.next/
+/out/
+/build
+/dist
+
+# Testing
+/coverage
+
+# Environment — NEVER commit real values.
+# The template must be committed so setup stays documented.
+.env*
+!.env.example
+
+# Secrets and credentials
+*.pem
+*.key
+*.p12
+*.pfx
+service-account*.json
+credentials*.json
+
+# Local uploads / scratch — resumes and media must never reach the repo
+/uploads
+/tmp
+/.scratch
+
+# Database dumps and backups — may contain patient data
+*.sql.gz
+*.dump
+/backups
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Vercel
+.vercel
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+
+# HTML diff snapshots � build artefacts, not source
+/.html-snapshots
+/.media-manifest.json
+
+# Admin acceptance-run output. A results file is evidence of one run on one
+# machine, not source: committing it makes a stale pass look current.
+/admin-e2e-results.json

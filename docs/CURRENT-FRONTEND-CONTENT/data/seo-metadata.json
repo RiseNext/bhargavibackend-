@@ -1,0 +1,291 @@
+{
+  "_meta": {
+    "_extractedFrom": "src/app/layout.tsx (global), the exported `metadata` object in each of 9 page files, src/app/services/[slug]/page.tsx generateMetadata(), src/app/sitemap.ts, src/app/robots.ts",
+    "_note": "Verbatim. Owner instruction: do not modify SEO yet — this is a record only.",
+    "totalPageMetaEntries": 10,
+    "totalJsonLdBlocks": 4,
+    "analytics": "NONE — no gtag, no Google Analytics, no Vercel Analytics, no consent banner anywhere in the frontend."
+  },
+
+  "global": {
+    "_source": "src/app/layout.tsx:25-50",
+    "metadataBase": "new URL(site.url)",
+    "metadataBaseResolved": "https://www.bhargavihealthworld.com",
+    "title": {
+      "default": "Wellness Center in Chikkadpally | Bhargavi Health World",
+      "defaultJsx": "`${site.tagline} | ${site.name}`",
+      "template": "%s | Bhargavi Health World",
+      "templateJsx": "`%s | ${site.name}`"
+    },
+    "description": "Holistic wellness care in Chikkadpally, Hyderabad. Acupuncture, acupressure, naturopathy and natural pain-relief therapies led by Anjana Bhargavi.",
+    "descriptionJsx": "site.description",
+    "openGraph": {
+      "type": "website",
+      "locale": "en_IN",
+      "siteName": "Bhargavi Health World",
+      "title": "Wellness Center in Chikkadpally | Bhargavi Health World",
+      "description": "Holistic wellness care in Chikkadpally, Hyderabad. Acupuncture, acupressure, naturopathy and natural pain-relief therapies led by Anjana Bhargavi.",
+      "images": [{ "url": "/images/brand/og-card.png", "width": 1200, "height": 630, "alt": "Bhargavi Health World" }]
+    },
+    "twitter": {
+      "card": "summary_large_image",
+      "title": "Wellness Center in Chikkadpally | Bhargavi Health World",
+      "description": "Holistic wellness care in Chikkadpally, Hyderabad. Acupuncture, acupressure, naturopathy and natural pain-relief therapies led by Anjana Bhargavi.",
+      "images": ["/images/brand/og-card.png"]
+    },
+    "alternates": { "canonical": "/" },
+    "robots": { "index": true, "follow": true },
+    "viewport": {
+      "_source": "src/app/layout.tsx:52-57",
+      "themeColor": "#3d2a1e",
+      "_themeColorNote": "DIFFERENT from site.brandColor ('#44683d'). Two separate values in the source.",
+      "width": "device-width",
+      "initialScale": 1,
+      "viewportFit": "cover"
+    },
+    "htmlLang": "en-IN",
+    "fonts": {
+      "_source": "src/app/layout.tsx:12-23",
+      "display": { "family": "Fraunces", "variable": "--font-fraunces", "subsets": ["latin"], "display": "swap", "axes": ["SOFT", "WONK"] },
+      "body": { "family": "Plus_Jakarta_Sans", "variable": "--font-jakarta", "subsets": ["latin"], "display": "swap" },
+      "_provider": "next/font/google"
+    }
+  },
+
+  "perPage": [
+    {
+      "route": "/",
+      "sourceFile": "src/app/page.tsx:16-21",
+      "title": "Wellness Center in Chikkadpally | Acupressure Clinic in Chikkadpally",
+      "description": "Bhargavi Health World in Chikkadpally, Hyderabad offers holistic wellness care. Led by Anjana Bhargavi (Diploma in Acupuncture), we specialize in acupuncture, pain management & natural healing therapies.",
+      "canonical": "/",
+      "ogImage": "inherits global",
+      "_renderedTitle": "Wellness Center in Chikkadpally | Acupressure Clinic in Chikkadpally | Bhargavi Health World"
+    },
+    {
+      "route": "/about",
+      "sourceFile": "src/app/about/page.tsx:19-24",
+      "title": "Anjana Bhargavi | Acupuncture Therapist in Chikkadpally",
+      "description": "Anjana Bhargavi, a leading acupuncture therapist in Chikkadpally, offers expert holistic treatments at Bhargavi Health World. Restore balance and well-being with natural therapies in Hyderabad.",
+      "canonical": "/about",
+      "ogImage": "inherits global"
+    },
+    {
+      "route": "/services",
+      "sourceFile": "src/app/services/page.tsx:12-17",
+      "title": "Services",
+      "description": "Bhargavi Health World in Chikkadpally offers expert holistic care through acupuncture, acupressure, physiotherapy, and more. Restore your health naturally in the heart of Hyderabad.",
+      "canonical": "/services",
+      "ogImage": "inherits global"
+    },
+    {
+      "route": "/services/[slug]",
+      "sourceFile": "src/app/services/[slug]/page.tsx:23-34",
+      "generated": true,
+      "titleTemplate": "`${service.title} in Chikkadpally, Hyderabad`",
+      "descriptionTemplate": "service.excerpt",
+      "canonicalTemplate": "`/services/${service.slug}`",
+      "ogImageTemplate": "service.image",
+      "_warning": "The 'in Chikkadpally, Hyderabad' suffix is hardcoded and applies to all 10 therapies regardless of which branch offers them.",
+      "resolvedForAll10": [
+        { "slug": "acupuncture", "title": "Acupuncture in Chikkadpally, Hyderabad", "canonical": "/services/acupuncture", "ogImage": "/images/services/acupuncture.jpg" },
+        { "slug": "acupressure", "title": "Acupressure in Chikkadpally, Hyderabad", "canonical": "/services/acupressure", "ogImage": "/images/services/accupressure.jpg" },
+        { "slug": "naturopathy-consultation", "title": "Naturopathy Consultation in Chikkadpally, Hyderabad", "canonical": "/services/naturopathy-consultation", "ogImage": "/images/services/naturopathy.jpg" },
+        { "slug": "nutrition-and-diet", "title": "Nutrition & Diet in Chikkadpally, Hyderabad", "canonical": "/services/nutrition-and-diet", "ogImage": "/images/services/nutrition-diet.jpg" },
+        { "slug": "seed-therapy", "title": "Seed Therapy in Chikkadpally, Hyderabad", "canonical": "/services/seed-therapy", "ogImage": "/images/services/seed-therapy.jpg" },
+        { "slug": "cupping-therapy", "title": "Cupping Therapy in Chikkadpally, Hyderabad", "canonical": "/services/cupping-therapy", "ogImage": "/images/services/cupping-therapy.jpg" },
+        { "slug": "magneto-therapy", "title": "Magneto Therapy in Chikkadpally, Hyderabad", "canonical": "/services/magneto-therapy", "ogImage": "/images/services/magneto-therapy.jpg" },
+        { "slug": "chiropractic", "title": "Chiropractic in Chikkadpally, Hyderabad", "canonical": "/services/chiropractic", "ogImage": "/images/services/chiropractic.jpg" },
+        { "slug": "physiotherapy", "title": "Physiotherapy in Chikkadpally, Hyderabad", "canonical": "/services/physiotherapy", "ogImage": "/images/services/physiotherapy.jpg" },
+        { "slug": "varma-kala", "title": "Varma Kala in Chikkadpally, Hyderabad", "canonical": "/services/varma-kala", "ogImage": "/images/services/varma-kala.jpg" }
+      ]
+    },
+    {
+      "route": "/gallery",
+      "sourceFile": "src/app/gallery/page.tsx:9-14",
+      "title": "Clinic Gallery",
+      "description": "Explore images of holistic acupuncture and acupressure therapy at Bhargavi Health World, Chikkadpally, Hyderabad. See how our treatments enhance wellness and relieve pain naturally.",
+      "canonical": "/gallery",
+      "ogImage": "inherits global"
+    },
+    {
+      "route": "/videos",
+      "sourceFile": "src/app/videos/page.tsx:12-17",
+      "title": "Health Talks | Acupressure Treatment in Chikkadpally",
+      "description": "Watch videos on acupuncture and acupressure at Bhargavi Health World, Chikkadpally, Hyderabad. Discover expert pain relief and wellness therapies.",
+      "canonical": "/videos",
+      "ogImage": "inherits global"
+    },
+    {
+      "route": "/testimonials",
+      "sourceFile": "src/app/testimonials/page.tsx:10-15",
+      "title": "Testimonials | Acupuncture & Wellness Treatment Reviews",
+      "description": "Read patient testimonials at Bhargavi Health World, Hyderabad, and see how our acupuncture and wellness treatments aid pain relief and stress management.",
+      "canonical": "/testimonials",
+      "ogImage": "inherits global"
+    },
+    {
+      "route": "/blog",
+      "sourceFile": "src/app/blog/page.tsx:10-15",
+      "title": "Blog | Acupuncture Clinic in Chikkadpally",
+      "description": "Read the latest articles from Bhargavi Health World, a trusted acupuncture clinic in Chikkadpally, Hyderabad. Explore tips on acupuncture and holistic wellness.",
+      "canonical": "/blog",
+      "ogImage": "inherits global",
+      "_note": "Page has no content; it is still listed in the sitemap at priority 0.5."
+    },
+    {
+      "route": "/careers",
+      "sourceFile": "src/app/careers/page.tsx:12-17",
+      "title": "Careers | Join Bhargavi Health World, Hyderabad",
+      "description": "Therapist, consultant and front-desk openings at Bhargavi Health World's Chikkadpally and Bowenpally branches. Build a career in holistic wellness care.",
+      "canonical": "/careers",
+      "ogImage": "inherits global",
+      "_note": "This is the ONLY metadata string in the frontend that names both branches."
+    },
+    {
+      "route": "/contact",
+      "sourceFile": "src/app/contact/page.tsx:14-19",
+      "title": "Contact | Trusted Acupuncture Clinic in Chikkadpally",
+      "description": "Reach out to Bhargavi Health World for expert acupuncture treatments in Chikkadpally, Hyderabad. Contact us for appointments, consultations, or inquiries about our pain relief and wellness services.",
+      "canonical": "/contact",
+      "ogImage": "inherits global"
+    },
+    {
+      "route": "not-found (404)",
+      "sourceFile": "src/app/not-found.tsx",
+      "title": "NONE — no metadata export",
+      "description": "NONE",
+      "canonical": "NONE",
+      "_note": "Falls back to the global layout metadata. No noindex is set."
+    }
+  ],
+
+  "structuredData": [
+    {
+      "type": "MedicalClinic",
+      "sourceFile": "src/app/layout.tsx:59-100",
+      "scope": "EVERY page (injected in the root layout body)",
+      "injectionMethod": "<script type=\"application/ld+json\" dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }} />",
+      "_criticalNote": "Describes ONE location only, using the single site.address and site.geo. The Bowenpally branch is absent from all structured data.",
+      "_sourceComment": "The schema's address is the Chikkadpally clinic, so pair its number.",
+      "resolvedValue": {
+        "@context": "https://schema.org",
+        "@type": "MedicalClinic",
+        "name": "Bhargavi Health World",
+        "description": "Holistic wellness care in Chikkadpally, Hyderabad. Acupuncture, acupressure, naturopathy and natural pain-relief therapies led by Anjana Bhargavi.",
+        "url": "https://www.bhargavihealthworld.com",
+        "telephone": "+91 98663 76203",
+        "_telephoneSource": "site.branches[0].phone → Chikkadpally",
+        "email": "bhargavihealthworld@gmail.com",
+        "priceRange": "₹100–1000",
+        "image": "https://www.bhargavihealthworld.com/images/team/anjana-bhargavi.jpg",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "H. No 1-8-539/1/a, Metro Pillar No-1115, Near Pista House, Chikkadpally",
+          "addressLocality": "Hyderabad",
+          "addressRegion": "Telangana",
+          "postalCode": "500020",
+          "addressCountry": "IN"
+        },
+        "geo": { "@type": "GeoCoordinates", "latitude": 17.405174930115965, "longitude": 78.49652574603265 },
+        "openingHoursSpecification": [
+          {
+            "@type": "OpeningHoursSpecification",
+            "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+            "opens": "09:00",
+            "closes": "21:00"
+          }
+        ],
+        "sameAs": [
+          "https://www.facebook.com/Bhargavihealthworld",
+          "https://www.instagram.com/bhargavihealthworld/",
+          "https://www.youtube.com/@bhargavihealthworld8686"
+        ]
+      }
+    },
+    {
+      "type": "FAQPage",
+      "sourceFile": "src/app/page.tsx:23-31",
+      "scope": "home page only",
+      "builtFrom": "faqs from src/content/site-content.ts (all 6)",
+      "shape": "{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqs.map(f => ({ '@type': 'Question', name: f.question, acceptedAnswer: { '@type': 'Answer', text: f.answer } })) }",
+      "_criticalNote": "Because answers are serialised into JSON-LD they must stay PLAIN TEXT. FAQ index 3 publishes the phone number and index 4 publishes the opening hours as structured data."
+    },
+    {
+      "type": "MedicalTherapy",
+      "sourceFile": "src/app/services/[slug]/page.tsx:43-50",
+      "scope": "each of the 10 service detail pages",
+      "shape": "{ '@context': 'https://schema.org', '@type': 'MedicalTherapy', name: service.title, description: service.excerpt, url: `${site.url}/services/${service.slug}`, provider: { '@type': 'MedicalClinic', name: site.name, url: site.url } }"
+    },
+    {
+      "type": "Person",
+      "sourceFile": "src/app/about/page.tsx:41-49",
+      "scope": "/about only",
+      "resolvedValue": {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Anjana Bhargavi",
+        "jobTitle": "Founder Acupuncture",
+        "worksFor": { "@type": "MedicalClinic", "name": "Bhargavi Health World" },
+        "image": "https://www.bhargavihealthworld.com/images/team/anjana-bhargavi.jpg",
+        "description": "<aboutStory[0] — the full first paragraph of the founder story>"
+      }
+    }
+  ],
+
+  "structuredDataAbsent": {
+    "BreadcrumbList": "NOT EMITTED — although breadcrumbs are rendered visually on 7 pages",
+    "JobPosting": "NOT EMITTED — deliberate; careers.ts:5-7 warns against it while roles are unconfirmed",
+    "BlogPosting": "NOT EMITTED — no posts exist",
+    "Organization": "NOT EMITTED — no parent entity ties the two branches together",
+    "Service": "NOT EMITTED — MedicalTherapy is used instead",
+    "Review / AggregateRating": "NOT EMITTED — although 23 testimonials exist and a hardcoded 5-star graphic is shown on each"
+  },
+
+  "sitemap": {
+    "_source": "src/app/sitemap.ts",
+    "totalUrls": 19,
+    "lastModified": "new Date()",
+    "_lastModifiedWarning": "Stamped as 'now' on every URL at build time — therefore meaningless to crawlers.",
+    "changeFrequency": "monthly (all entries)",
+    "staticRoutes": [
+      { "path": "", "priority": 1 },
+      { "path": "/about", "priority": 0.8 },
+      { "path": "/services", "priority": 0.9 },
+      { "path": "/gallery", "priority": 0.6 },
+      { "path": "/videos", "priority": 0.6 },
+      { "path": "/testimonials", "priority": 0.7 },
+      { "path": "/blog", "priority": 0.5 },
+      { "path": "/careers", "priority": 0.5 },
+      { "path": "/contact", "priority": 0.8 }
+    ],
+    "dynamicRoutes": "services.map(s => `${site.url}/services/${s.slug}`) at priority 0.7 — 10 URLs",
+    "notIncluded": ["not-found", "/blog/[slug] (does not exist)", "/careers/[slug] (does not exist)"]
+  },
+
+  "robots": {
+    "_source": "src/app/robots.ts",
+    "rules": { "userAgent": "*", "allow": "/" },
+    "disallow": "NONE",
+    "sitemap": "https://www.bhargavihealthworld.com/sitemap.xml",
+    "sitemapJsx": "`${site.url}/sitemap.xml`"
+  },
+
+  "httpHeaders": {
+    "_source": "next.config.ts:7-32",
+    "_note": "Applied to /:path* — recorded for completeness; these are configuration, not content.",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "X-DNS-Prefetch-Control": "on",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+    "poweredByHeader": false,
+    "contentSecurityPolicy": "NONE"
+  },
+
+  "imageConfig": {
+    "_source": "next.config.ts:19-25",
+    "formats": ["image/avif", "image/webp"],
+    "remotePatterns": [{ "protocol": "https", "hostname": "i.ytimg.com", "pathname": "/vi/**" }],
+    "_criticalNote": "ONLY i.ytimg.com is allowed. Any managed-media host must be added here, in the FRONTEND repo, before an uploaded image can render."
+  }
+}

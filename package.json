@@ -1,0 +1,60 @@
+{
+  "name": "bhargavi-backend",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p ${PORT:-3001}",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "migrate": "tsx scripts/migrate.ts",
+    "migrate:status": "tsx scripts/migrate.ts --status",
+    "seed": "tsx scripts/seed.ts",
+    "admin:create": "tsx scripts/admin-create.ts",
+    "restore:verify": "tsx scripts/restore-verify.ts",
+    "assets:migrate": "tsx scripts/migrate-assets.ts",
+    "docs:lint": "tsx scripts/docs-lint.ts",
+    "preflight:launch": "tsx scripts/preflight-launch.mts",
+    "verify:page-copy": "tsx scripts/verify-page-copy-consumed.mts",
+    "verify:robots": "tsx scripts/verify-robots.mts",
+    "verify:reconciliation": "tsx scripts/verify-reconciliation.mts",
+    "verify:migration-order": "tsx scripts/verify-migration-order.mts",
+    "seed:local-full": "tsx scripts/seed-local-full.mts",
+    "e2e:proxy": "node scripts/proxy-e2e.mjs",
+    "diff:capture": "node scripts/html-diff.mjs capture",
+    "diff:compare": "node scripts/html-diff.mjs compare",
+    "cloudinary:verify": "tsx scripts/cloudinary-verify.mjs",
+    "verify:neon": "node scripts/_verify-neon-state.mjs",
+    "mutation:test": "node scripts/mutation-test.mjs",
+    "media:live-test": "tsx scripts/media-live-test.mjs",
+    "e21:mutation": "node scripts/e21-mutation-test.mjs",
+    "e21:equivalence": "node scripts/e21-equivalence.mjs",
+    "hours:consistency": "node scripts/hours-consistency-test.mjs"
+  },
+  "dependencies": {
+    "@node-rs/argon2": "^2.0.2",
+    "cloudinary": "^2.5.1",
+    "next": "15.5.26",
+    "pg": "^8.13.1",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/pg": "^8.11.10",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "eslint": "^9.17.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^2.1.8"
+  }
+}

@@ -1,0 +1,250 @@
+{
+  "_meta": {
+    "_extractedFrom": "whole-repository grep sweep",
+    "_note": "Every email, phone, WhatsApp and map value found anywhere in the frontend, with exact source locations.",
+    "method": "Regex sweep over the entire frontend repository (excluding package-lock.json) for email patterns, tel: links, wa.me links, +91 numbers and map URLs.",
+    "ownerDecision": "D-004: current frontend emails are the initial values. Do not invent or replace."
+  },
+  "emails": [
+    {
+      "email": "bhargavihealthworld@gmail.com",
+      "exactSourceValue": "bhargavihealthworld@gmail.com",
+      "sourceFile": "src/lib/site.ts",
+      "line": 46,
+      "field": "site.email",
+      "usage": "The ONLY real email address in the frontend. Rendered as: /contact 'Email' card + mailto link; footer mailto link; /careers 'Email your resume to ...' (x2 - an ArrowLink and an aside paragraph); CareerForm success message; schema.org MedicalClinic `email` property.",
+      "isRealAddress": true
+    },
+    {
+      "email": "bhargavihealthworld@gmail.com",
+      "exactSourceValue": "# CONTACT_TO_EMAIL=bhargavihealthworld@gmail.com",
+      "sourceFile": ".env.example",
+      "line": 14,
+      "field": "CONTACT_TO_EMAIL (commented out)",
+      "usage": "Commented-out environment variable template. Not active. Same address as site.email.",
+      "isRealAddress": true
+    },
+    {
+      "email": "your@email.com",
+      "exactSourceValue": "your@email.com",
+      "sourceFile": "src/components/forms/NewsletterForm.tsx",
+      "line": 46,
+      "field": "input placeholder attribute",
+      "usage": "UI placeholder text only - NOT a real address. (This form is also not rendered on any page.)",
+      "isRealAddress": false
+    }
+  ],
+  "emailFindings": {
+    "totalDistinctRealAddresses": 1,
+    "conflictsFound": "NONE - only one real email address exists in the frontend.",
+    "noteOnOldSite": "backend/textprd.md:22 records that the OLD site's PHP form mailed 'bhargavipragada538@gmail.com' - a different, personal address. That address does NOT appear anywhere in the current frontend. It is recorded here for traceability only and is NOT adopted as an initial value.",
+    "futureMapping": "site_settings.public_email = bhargavihealthworld@gmail.com. Notification inboxes (per-branch, careers, alerts) are separate fields with no current frontend value - see UNKNOWN entries in branches.json."
+  },
+  "phones": [
+    {
+      "exactSourceValue": "+91 70751 57013",
+      "normalised": "+917075157013",
+      "href": "tel:+917075157013",
+      "branchLabel": "Bowenpally",
+      "sourceFile": "src/lib/site.ts",
+      "line": 31,
+      "field": "site.phones[0]",
+      "usage": "DEFAULT phone. Used by: /contact hero 'Call' CTA, /contact 'Call' card link, FloatingActions call button (mobile), CtaBand 'Call' button, Header mobile menu, Footer, /careers and /services/[slug] 'Prefer to call?' lists."
+    },
+    {
+      "exactSourceValue": "+91 98663 76203",
+      "normalised": "+919866376203",
+      "href": "tel:+919866376203",
+      "branchLabel": "Chikkadpally",
+      "sourceFile": "src/lib/site.ts",
+      "line": 32,
+      "field": "site.phones[1]",
+      "usage": "Listed in 'Prefer to call?' blocks, Footer, Header mobile menu, /contact 'Call' card. Also used as schema.org MedicalClinic `telephone` via branches[0].phone."
+    },
+    {
+      "exactSourceValue": "+91 98663 76203",
+      "normalised": "+919866376203",
+      "branchLabel": "Chikkadpally",
+      "sourceFile": "src/lib/site.ts",
+      "line": 39,
+      "field": "site.branches[0].phone",
+      "usage": "Branch record. Rendered on the AppointmentForm branch-chooser button."
+    },
+    {
+      "exactSourceValue": "+91 70751 57013",
+      "normalised": "+917075157013",
+      "branchLabel": "Bowenpally",
+      "sourceFile": "src/lib/site.ts",
+      "line": 40,
+      "field": "site.branches[1].phone",
+      "usage": "Branch record. Rendered on the AppointmentForm branch-chooser button."
+    },
+    {
+      "exactSourceValue": "+91 70751 57013",
+      "normalised": "+917075157013",
+      "branchLabel": "none - inline literal",
+      "sourceFile": "src/content/site-content.ts",
+      "line": 96,
+      "field": "faqs[3].answer (inside answer text)",
+      "usage": "HARDCODED inside FAQ answer: 'Call or WhatsApp +91 70751 57013 to reserve a slot.' This answer is also emitted as FAQPage JSON-LD."
+    },
+    {
+      "exactSourceValue": "+91 70751 57013",
+      "normalised": "+917075157013",
+      "branchLabel": "none - inline literal",
+      "sourceFile": "src/components/forms/fields.tsx",
+      "line": 174,
+      "field": "FormStatus error fallback string",
+      "usage": "HARDCODED in the form error message: 'Something went wrong. Please call us on +91 70751 57013 instead.' Shown on any form failure."
+    }
+  ],
+  "phoneFindings": {
+    "totalDistinctNumbers": 2,
+    "distinctValues": [
+      "+91 70751 57013",
+      "+91 98663 76203"
+    ],
+    "hardcodedOutsideSiteTs": 2,
+    "conflictsFound": "NONE - the two numbers are used consistently. The two hardcoded literals both match site.phones[0] (Bowenpally).",
+    "noteOnOldSite": "backend/textprd.md:19 records the old site's numbers as '+91 7075157013 / 089199 65333'. The number '089199 65333' does NOT appear anywhere in the current frontend. Recorded for traceability only; not adopted."
+  },
+  "whatsapp": [
+    {
+      "exactSourceValue": "+917075157013",
+      "sourceFile": "src/lib/site.ts",
+      "line": 43,
+      "field": "site.whatsapp.number",
+      "usage": "DEFAULT WhatsApp target. Used by ContactForm, every 'Ask on WhatsApp' link on service pages, and whatsappUrl()'s default parameter. This is the BOWENPALLY number."
+    },
+    {
+      "exactSourceValue": "https://api.whatsapp.com/send?phone=+917075157013&text=hello&lang=en",
+      "sourceFile": "src/lib/site.ts",
+      "line": 44,
+      "field": "site.whatsapp.href",
+      "usage": "Direct WhatsApp link. Used by FloatingActions WhatsApp FAB, /contact hero 'WhatsApp us' button, /contact 'Hours' card CTA, HomeSections AppointmentBand 'WhatsApp' row. NOTE: this is an api.whatsapp.com URL with a prefilled text of 'hello', distinct from the wa.me links the forms build."
+    },
+    {
+      "exactSourceValue": "+919866376203",
+      "sourceFile": "src/lib/site.ts",
+      "line": 39,
+      "field": "site.branches[0].whatsapp",
+      "usage": "Chikkadpally branch WhatsApp. Used when a visitor taps 'Chikkadpally' in the AppointmentForm branch chooser."
+    },
+    {
+      "exactSourceValue": "+917075157013",
+      "sourceFile": "src/lib/site.ts",
+      "line": 40,
+      "field": "site.branches[1].whatsapp",
+      "usage": "Bowenpally branch WhatsApp. Used when a visitor taps 'Bowenpally' in the AppointmentForm branch chooser."
+    },
+    {
+      "exactSourceValue": "https://wa.me/${digits}?text=${encodeURIComponent(text)}",
+      "sourceFile": "src/lib/whatsapp.ts",
+      "line": 31,
+      "field": "whatsappUrl() return template",
+      "usage": "The deep-link builder. Strips non-digits from the phone. THIS IS THE LEAD DELIVERY MECHANISM."
+    }
+  ],
+  "whatsappFindings": {
+    "totalDistinctNumbers": 2,
+    "twoDifferentUrlFormats": "api.whatsapp.com/send?phone=... (static href in site.ts) AND wa.me/<digits>?text=... (built by whatsappUrl()). Both preserved.",
+    "criticalConstraint": "AppointmentForm.tsx:46-48 - window.open MUST stay synchronous. Source comment: 'Must stay synchronous: an async gap here loses the gesture context and the browser blocks the tab.' Do not introduce an await before it."
+  },
+  "maps": [
+    {
+      "exactSourceValue": "https://maps.app.goo.gl/XLX7hEATPodxRXa4A",
+      "sourceFile": "src/lib/site.ts",
+      "line": 58,
+      "field": "site.mapsUrl",
+      "usage": "'Open in Maps' (contact card) and 'Get directions' (below the map embed); AppointmentBand 'Visit' row."
+    },
+    {
+      "exactSourceValue": "https://www.google.com/maps?q=17.405174930115965,78.49652574603265&z=16&output=embed",
+      "sourceFile": "src/lib/site.ts",
+      "line": "59-60",
+      "field": "site.mapEmbedSrc",
+      "usage": "The <iframe> map on /contact. Title: 'Map showing Bhargavi Health World, Chikkadpally'."
+    }
+  ],
+  "addresses": [
+    {
+      "exactSourceValue": {
+        "line1": "H. No 1-8-539/1/a, Metro Pillar No-1115",
+        "line2": "Near Pista House, Chikkadpally",
+        "city": "Hyderabad",
+        "state": "Telangana",
+        "postalCode": "500020",
+        "country": "IN",
+        "full": "H. No 1-8-539/1/a, Metro Pillar No-1115, Near Pista House, Chikkadpally, Hyderabad, Telangana - 500020"
+      },
+      "sourceFile": "src/lib/site.ts",
+      "line": "48-56",
+      "field": "site.address",
+      "usage": "/contact 'Visit' card (line1, line2, 'city – postalCode'); Footer address block (line1, city, postalCode); AppointmentBand 'Visit' row (address.full); schema.org PostalAddress.",
+      "branchAttribution": "Chikkadpally (the address text itself names Chikkadpally)"
+    },
+    {
+      "exactSourceValue": "Near Pista House, Chikkadpally · Metro Pillar 1115",
+      "sourceFile": "src/app/contact/page.tsx",
+      "line": 175,
+      "field": "inline JSX string below the map embed",
+      "usage": "Hardcoded address fragment - duplicates site.address.line1/line2 in a different wording."
+    },
+    {
+      "exactSourceValue": "Clean, private treatment rooms in Chikkadpally — a two-minute walk from Metro Pillar 1115.",
+      "sourceFile": "src/app/about/page.tsx",
+      "line": 175,
+      "field": "SectionHead lead, 'The space' section",
+      "usage": "Hardcoded location prose."
+    },
+    {
+      "exactSourceValue": "Chikkadpally, Hyderabad",
+      "sourceFile": "src/components/sections/Hero.tsx",
+      "line": 38,
+      "field": "hero eyebrow, after site.name",
+      "usage": "Hardcoded location in the home hero eyebrow."
+    },
+    {
+      "exactSourceValue": "Practising in Chikkadpally",
+      "sourceFile": "src/components/sections/HomeSections.tsx",
+      "line": 62,
+      "field": "Intro 'Since 2017' card caption",
+      "usage": "Hardcoded location text."
+    }
+  ],
+  "addressFindings": {
+    "totalDistinctFullAddresses": 1,
+    "conflictsFound": "NONE - only one structured address exists.",
+    "missing": "Bowenpally has NO address anywhere in the frontend: UNKNOWN — CURRENT FRONTEND DOES NOT PROVIDE THIS",
+    "hardcodedFragments": 4
+  },
+  "socialLinks": [
+    {
+      "name": "Facebook",
+      "href": "https://www.facebook.com/Bhargavihealthworld",
+      "sourceFile": "src/lib/site.ts",
+      "line": 69,
+      "usage": "Footer social icon row; schema.org MedicalClinic `sameAs`. YouTube additionally powers the /videos 'Subscribe on YouTube' button."
+    },
+    {
+      "name": "Instagram",
+      "href": "https://www.instagram.com/bhargavihealthworld/",
+      "sourceFile": "src/lib/site.ts",
+      "line": 70,
+      "usage": "Footer social icon row; schema.org MedicalClinic `sameAs`. YouTube additionally powers the /videos 'Subscribe on YouTube' button."
+    },
+    {
+      "name": "YouTube",
+      "href": "https://www.youtube.com/@bhargavihealthworld8686",
+      "sourceFile": "src/lib/site.ts",
+      "line": 71,
+      "usage": "Footer social icon row; schema.org MedicalClinic `sameAs`. YouTube additionally powers the /videos 'Subscribe on YouTube' button."
+    }
+  ],
+  "socialFindings": {
+    "total": 3,
+    "iconCoupling": "Footer.tsx:6-22 holds a hardcoded SVG icon map keyed by platform NAME, containing only Facebook, Instagram and YouTube. A platform with no matching icon falls back to a 2-letter text badge (Footer.tsx:67-69).",
+    "nonNullAssertionWarning": "src/app/videos/page.tsx:20 does site.socials.find(s => s.name === 'YouTube')! - a non-null assertion. Removing or renaming the YouTube entry would break that page.",
+    "noteOnOldSite": "backend/textprd.md:33-38 records the old site as having SIX platforms (adding X/Twitter, LinkedIn, Pinterest) and a DIFFERENT Instagram handle ('bhargavi_health_world' vs the current 'bhargavihealthworld'). Only the current three are adopted as initial values."
+  }
+}

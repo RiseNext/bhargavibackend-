@@ -1,0 +1,224 @@
+{
+  "_meta": {
+    "_extractedFrom": "src/content/media.ts",
+    "_note": "Verbatim. Titles include Telugu script - preserved exactly.",
+    "count": 19,
+    "featuredCount": 6,
+    "fieldsPresentInSource": [
+      "id",
+      "title",
+      "translation?",
+      "featured?"
+    ],
+    "derivedNotStored": {
+      "thumbnail": "https://i.ytimg.com/vi/<id>/hqdefault.jpg  (media.ts:98-99, youtubeThumb())",
+      "watchUrl": "https://www.youtube.com/watch?v=<id>  (media.ts:101-102, youtubeWatch())",
+      "embedUrl": "https://www.youtube-nocookie.com/embed/<id>?autoplay=1&rel=0  (VideoCard.tsx:20)"
+    },
+    "note": "`id` is the YouTube video ID. No URLs are stored in the source; all are derived.",
+    "orderIsSignificant": true
+  },
+  "videos": [
+    {
+      "id": "6STwtkvRBIA",
+      "title": "Stop Nausea & Dizziness Naturally — a simple acupressure tip"
+    },
+    {
+      "id": "UsKRCXN-jo0",
+      "title": "Tired of Skipping Breakfast? Try this fruit bowl plan"
+    },
+    {
+      "id": "SP6KeFkfFEc",
+      "title": "A simple fruit bowl plan for busy mornings"
+    },
+    {
+      "id": "xj_5hVlamRQ",
+      "title": "Brain development & brain games",
+      "featured": true
+    },
+    {
+      "id": "kOEFJyDlzks",
+      "title": "హాయిగా నిద్ర పోవాలంటే..",
+      "translation": "Tips for sound sleep",
+      "featured": true
+    },
+    {
+      "id": "R25zlkaIdhY",
+      "title": "ఎసిడిటీ తగ్గడానికి చిట్కాలు",
+      "translation": "Tips to reduce acidity",
+      "featured": true
+    },
+    {
+      "id": "t2qYD1cORPU",
+      "title": "లో బీపి తగ్గడానికి కలర్ థెరపీ",
+      "translation": "Colour therapy for low BP",
+      "featured": true
+    },
+    {
+      "id": "7rY8IxZ9aIw",
+      "title": "హై బీపీ తగ్గడానికి ప్రెషర్ పాయింట్స్",
+      "translation": "Pressure points for high BP"
+    },
+    {
+      "id": "ue4n1KbVypI",
+      "title": "మెడ నొప్పి తగ్గడానికి ప్రెషర్ పాయింట్స్",
+      "translation": "Pressure points for neck pain"
+    },
+    {
+      "id": "cVRToZ-2190",
+      "title": "నడుము నొప్పి తగ్గడానికి ఇలా చేయండి",
+      "translation": "For lower back pain"
+    },
+    {
+      "id": "cIxwaUcG1CE",
+      "title": "మడమలలో నొప్పి తగ్గాలంటే",
+      "translation": "For heel pain"
+    },
+    {
+      "id": "Yera5I2VNEU",
+      "title": "Excessive Bleeding సమస్యకు చక్కని పరిష్కారం",
+      "translation": "A good solution for excessive bleeding"
+    },
+    {
+      "id": "4rE1haPXQ2E",
+      "title": "PCOD సమస్యా?! అయితే ఈ సింపుల్ పరిష్కారం",
+      "translation": "A simple solution for PCOD",
+      "featured": true
+    },
+    {
+      "id": "nt0Ss2HUIuk",
+      "title": "ఈ మూడు పనులు చేస్తే మీకు స్ట్రెస్ ఉండదు",
+      "translation": "Three things to beat stress"
+    },
+    {
+      "id": "pxKUQ0PIqGE",
+      "title": "మోకాళ్ళ నొప్పులు తగ్గడానికి చిట్కాలు",
+      "translation": "Knee pain tips"
+    },
+    {
+      "id": "cBP4xFw0HjU",
+      "title": "ఇమ్మ్యూనిటీ పెంచేందుకు, దగ్గును తగ్గించేందుకు సింపుల్ ట్రిక్స్",
+      "translation": "Boost immunity, reduce cough"
+    },
+    {
+      "id": "vxdqIDbIBwY",
+      "title": "తలనొప్పిని రెండు నిమిషాల్లో తగ్గించుకోవడం ఎలా?",
+      "translation": "Relieve a headache in two minutes",
+      "featured": true
+    },
+    {
+      "id": "E5S_L6dbL9w",
+      "title": "ఎమర్జెన్సీ సమయంలో బాడీలో ఆక్సిజన్ లెవెల్ పెంచుకోవడం ఎలా?",
+      "translation": "Raise oxygen levels in an emergency"
+    },
+    {
+      "id": "cdTut-hzBu4",
+      "title": "Bhargavi Health World — trailer"
+    }
+  ],
+  "featuredIds": [
+    "xj_5hVlamRQ",
+    "kOEFJyDlzks",
+    "R25zlkaIdhY",
+    "t2qYD1cORPU",
+    "4rE1haPXQ2E",
+    "vxdqIDbIBwY"
+  ],
+  "derivedUrls": [
+    {
+      "id": "6STwtkvRBIA",
+      "thumbnail": "https://i.ytimg.com/vi/6STwtkvRBIA/hqdefault.jpg",
+      "watch": "https://www.youtube.com/watch?v=6STwtkvRBIA"
+    },
+    {
+      "id": "UsKRCXN-jo0",
+      "thumbnail": "https://i.ytimg.com/vi/UsKRCXN-jo0/hqdefault.jpg",
+      "watch": "https://www.youtube.com/watch?v=UsKRCXN-jo0"
+    },
+    {
+      "id": "SP6KeFkfFEc",
+      "thumbnail": "https://i.ytimg.com/vi/SP6KeFkfFEc/hqdefault.jpg",
+      "watch": "https://www.youtube.com/watch?v=SP6KeFkfFEc"
+    },
+    {
+      "id": "xj_5hVlamRQ",
+      "thumbnail": "https://i.ytimg.com/vi/xj_5hVlamRQ/hqdefault.jpg",
+      "watch": "https://www.youtube.com/watch?v=xj_5hVlamRQ"
+    },
+    {
+      "id": "kOEFJyDlzks",
+      "thumbnail": "https://i.ytimg.com/vi/kOEFJyDlzks/hqdefault.jpg",
+      "watch": "https://www.youtube.com/watch?v=kOEFJyDlzks"
+    },
+    {
+      "id": "R25zlkaIdhY",
+      "thumbnail": "https://i.ytimg.com/vi/R25zlkaIdhY/hqdefault.jpg",
+      "watch": "https://www.youtube.com/watch?v=R25zlkaIdhY"
+    },
+    {
+      "id": "t2qYD1cORPU",
+      "thumbnail": "https://i.ytimg.com/vi/t2qYD1cORPU/hqdefault.jpg",
+      "watch": "https://www.youtube.com/watch?v=t2qYD1cORPU"
+    },
+    {
+      "id": "7rY8IxZ9aIw",
+      "thumbnail": "https://i.ytimg.com/vi/7rY8IxZ9aIw/hqdefault.jpg",
+      "watch": "https://www.youtube.com/watch?v=7rY8IxZ9aIw"
+    },
+    {
+      "id": "ue4n1KbVypI",
+      "thumbnail": "https://i.ytimg.com/vi/ue4n1KbVypI/hqdefault.jpg",
+      "watch": "https://www.youtube.com/watch?v=ue4n1KbVypI"
+    },
+    {
+      "id": "cVRToZ-2190",
+      "thumbnail": "https://i.ytimg.com/vi/cVRToZ-2190/hqdefault.jpg",
+      "watch": "https://www.youtube.com/watch?v=cVRToZ-2190"
+    },
+    {
+      "id": "cIxwaUcG1CE",
+      "thumbnail": "https://i.ytimg.com/vi/cIxwaUcG1CE/hqdefault.jpg",
+      "watch": "https://www.youtube.com/watch?v=cIxwaUcG1CE"
+    },
+    {
+      "id": "Yera5I2VNEU",
+      "thumbnail": "https://i.ytimg.com/vi/Yera5I2VNEU/hqdefault.jpg",
+      "watch": "https://www.youtube.com/watch?v=Yera5I2VNEU"
+    },
+    {
+      "id": "4rE1haPXQ2E",
+      "thumbnail": "https://i.ytimg.com/vi/4rE1haPXQ2E/hqdefault.jpg",
+      "watch": "https://www.youtube.com/watch?v=4rE1haPXQ2E"
+    },
+    {
+      "id": "nt0Ss2HUIuk",
+      "thumbnail": "https://i.ytimg.com/vi/nt0Ss2HUIuk/hqdefault.jpg",
+      "watch": "https://www.youtube.com/watch?v=nt0Ss2HUIuk"
+    },
+    {
+      "id": "pxKUQ0PIqGE",
+      "thumbnail": "https://i.ytimg.com/vi/pxKUQ0PIqGE/hqdefault.jpg",
+      "watch": "https://www.youtube.com/watch?v=pxKUQ0PIqGE"
+    },
+    {
+      "id": "cBP4xFw0HjU",
+      "thumbnail": "https://i.ytimg.com/vi/cBP4xFw0HjU/hqdefault.jpg",
+      "watch": "https://www.youtube.com/watch?v=cBP4xFw0HjU"
+    },
+    {
+      "id": "vxdqIDbIBwY",
+      "thumbnail": "https://i.ytimg.com/vi/vxdqIDbIBwY/hqdefault.jpg",
+      "watch": "https://www.youtube.com/watch?v=vxdqIDbIBwY"
+    },
+    {
+      "id": "E5S_L6dbL9w",
+      "thumbnail": "https://i.ytimg.com/vi/E5S_L6dbL9w/hqdefault.jpg",
+      "watch": "https://www.youtube.com/watch?v=E5S_L6dbL9w"
+    },
+    {
+      "id": "cdTut-hzBu4",
+      "thumbnail": "https://i.ytimg.com/vi/cdTut-hzBu4/hqdefault.jpg",
+      "watch": "https://www.youtube.com/watch?v=cdTut-hzBu4"
+    }
+  ]
+}

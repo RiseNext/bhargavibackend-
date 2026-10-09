@@ -1,0 +1,54 @@
+{
+  "_meta": {
+    "_extractedFrom": "src/content/site-content.ts:3-9 AND src/components/sections/Hero.tsx:8-12",
+    "_note": "TWO SEPARATE, DIVERGENT COPIES EXIST. Both preserved - neither is 'correct'.",
+    "conflict": "CONFLICTING CURRENT FRONTEND DATA",
+    "conflictDetail": "site-content.ts has 4 stats; Hero.tsx has its own independent array of 3 with DIFFERENT labels. 'Years of expertise' vs 'Years practising'. The hero does not read from site-content.ts.",
+    "sourceFileComment": "\"Patients cured\" softened to \"treated\" — see docs/CONTENT-TODO.md #3."
+  },
+  "statsBand": {
+    "_source": "src/content/site-content.ts:3-9",
+    "_usedBy": "StatsBand component -> home page and /about",
+    "items": [
+      {
+        "value": 8,
+        "suffix": "+",
+        "label": "Years of expertise"
+      },
+      {
+        "value": 1000,
+        "suffix": "+",
+        "label": "Acupuncture cases"
+      },
+      {
+        "value": 3000,
+        "suffix": "+",
+        "label": "Patients treated"
+      },
+      {
+        "value": 10,
+        "suffix": "",
+        "label": "Therapies offered"
+      }
+    ]
+  },
+  "heroStats": {
+    "_source": "src/components/sections/Hero.tsx:8-12",
+    "_usedBy": "Hero component -> home page only",
+    "_note": "Hardcoded inside the component. Values are strings here, numbers in statsBand.",
+    "items": [
+      {
+        "k": "8+",
+        "v": "Years practising"
+      },
+      {
+        "k": "3000+",
+        "v": "Patients treated"
+      },
+      {
+        "k": "10",
+        "v": "Therapies"
+      }
+    ]
+  }
+}

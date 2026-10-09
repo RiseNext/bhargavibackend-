@@ -1,0 +1,54 @@
+/*
+ * Admin UI styling only.
+ *
+ * Deliberately independent of the public website's design system. D-010 forbids
+ * changing the public site, and sharing tokens across two repositories would
+ * create exactly the coupling that makes such a change easy to do by accident.
+ * This is a plain, legible internal tool.
+ */
+
+:root {
+  --bg: #f6f6f4;
+  --surface: #ffffff;
+  --border: #dcdcd6;
+  --text: #1d1d1b;
+  --muted: #6b6b63;
+  --accent: #44683d;
+  --accent-text: #ffffff;
+  --danger: #a3302a;
+  --warn: #8a5a12;
+  --ok: #2f6b3a;
+  --radius: 6px;
+  --space: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+  color: inherit;
+}

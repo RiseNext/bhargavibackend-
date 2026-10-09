@@ -1,0 +1,454 @@
+{
+  "_meta": {
+    "_extractedFrom": "JSX in src/app/**/page.tsx, src/app/not-found.tsx, src/components/sections/*.tsx, src/components/layout/*.tsx",
+    "_note": "Hand-transcribed VERBATIM from the JSX. These strings are embedded in components and could not be mechanically imported. Typography (en dashes, curly quotes/apostrophes, middots) is preserved exactly as written in source.",
+    "_markupConvention": "Where a heading contains inline emphasis, the source JSX is given in `titleJsx` and the plain-text rendering in `title`. Example: `Healing that treats the <span className=\"italic\">whole</span> person` renders as `Healing that treats the whole person` with 'whole' italicised. Plain text alone cannot round-trip this - see docs/DATABASE-DESIGN-DRAFT.md §4.1.",
+    "_prose": "Long-form prose (homeIntro, treatmentsIntro, aboutStory, achievements, whyChooseUs, process) lives in src/content/site-content.ts and is captured mechanically in ../source/content/site-content.ts and summarised in this file under `contentFileProse`.",
+    "totalSlotsCaptured": 47
+  },
+
+  "contentFileProse": {
+    "_source": "src/content/site-content.ts",
+    "_verbatimCopyAt": "../source/content/site-content.ts",
+    "_note": "Captured verbatim in the source copy. Keys listed here for the SOURCE-MAP.",
+    "keys": {
+      "stats": "4 items - see data/stats.json",
+      "whyChooseUs": "4 items { title, icon, text } - home WhyUs section",
+      "process": "4 items { step, title, text } - ProcessSteps on /about and /services",
+      "homeIntro": "1 paragraph - home Intro section",
+      "treatmentsIntro": "1 paragraph - EXPORTED BUT UNUSED (zero importers verified)",
+      "aboutStory": "3 paragraphs - /about founder story; aboutStory[0] also used as Person JSON-LD description",
+      "achievements": "5 items - /about Recognition section",
+      "faqs": "6 items - see data/faqs.json"
+    }
+  },
+
+  "home": {
+    "_sourceFiles": ["src/app/page.tsx", "src/components/sections/Hero.tsx", "src/components/sections/HomeSections.tsx"],
+    "sectionOrder": ["Hero", "Intro", "StatsBand", "TherapyIndex", "Testimonials", "HealthTalks", "WhyUs", "AppointmentBand", "FaqSection", "CtaBand"],
+    "slots": {
+      "hero": {
+        "_source": "src/components/sections/Hero.tsx:36-63",
+        "eyebrow": "Bhargavi Health World · Chikkadpally, Hyderabad",
+        "eyebrowJsx": "{site.name} · Chikkadpally, Hyderabad  (preceded by a <Seed /> glyph)",
+        "title": "Wellness Center made for you",
+        "titleJsx": "Three <Wipe> lines: `Wellness` / `Center made` / `for ` + <span className=\"italic text-terracotta\">you</span>",
+        "ctaPrimary": { "label": "Book an appointment", "href": "/contact" },
+        "ctaSecondary": { "label": "See therapies", "href": "/services" },
+        "portraitCaption": {
+          "name": "Mrs. Anjana Bhargavi",
+          "nameJsx": "{site.founder.honorific} {site.founder.name}",
+          "role": "Founder Acupuncture",
+          "roleJsx": "{site.founder.role}"
+        },
+        "supportingCopy": "Acupuncture, acupressure and natural pain relief led by Mrs. Anjana Bhargavi — treating the whole person, not just the symptom.",
+        "supportingCopyJsx": "Acupuncture, acupressure and natural pain relief led by <span className=\"text-ink\">{site.founder.honorific} {site.founder.name}</span> — treating the whole person, not just the symptom.",
+        "heroStats": "see data/stats.json -> heroStats (3 items, hardcoded in Hero.tsx:8-12)",
+        "marqueeScreenReaderText": "Therapies offered: Acupuncture, Acupressure, Naturopathy Consultation, Nutrition & Diet, Seed Therapy, Cupping Therapy, Magneto Therapy, Chiropractic, Physiotherapy, Varma Kala.",
+        "marqueeScreenReaderTextJsx": "Therapies offered: {services.map((s) => s.title).join(\", \")}.",
+        "images": [
+          { "src": "/images/services/acupuncture.jpg", "alt": "Acupuncture needles placed along a patient's back at Bhargavi Health World", "role": "wide treatment image" },
+          { "src": "/images/team/anjana-bhargavi.jpg", "alt": "Mrs. Anjana Bhargavi, Founder Acupuncture", "altJsx": "`${site.founder.honorific} ${site.founder.name}, ${site.founder.role}`", "role": "portrait" }
+        ]
+      },
+      "intro": {
+        "_source": "src/components/sections/HomeSections.tsx:32-123",
+        "label": "About the clinic",
+        "title": "Healing that treats the whole person",
+        "titleJsx": "Healing that treats the <span className=\"italic\">whole</span> person",
+        "bodyFrom": "src/content/site-content.ts -> homeIntro",
+        "sinceCard": { "label": "Since", "value": "2017", "caption": "Practising in Chikkadpally" },
+        "bulletList": [
+          "A full consultation before any treatment begins",
+          "Plans built around your routine, not a template",
+          "Therapies that complement your existing medication",
+          "Clear pricing from the very first visit"
+        ],
+        "_bulletListNote": "Hardcoded inline array at HomeSections.tsx:86-91. Not in any content file.",
+        "cta": { "label": "Read her story", "href": "/about" },
+        "bylineName": "Anjana Bhargavi",
+        "bylineRole": "Founder Acupuncture",
+        "images": [
+          { "src": "/images/services/seed-therapy.jpg", "alt": "Seed therapy applied to pressure points on the hand" },
+          { "src": "/images/services/accupressure.jpg", "alt": "Acupressure applied by hand" }
+        ]
+      },
+      "therapyIndex": {
+        "_source": "src/components/sections/HomeSections.tsx:129-154",
+        "label": "What we provide",
+        "title": "Ten therapies, one approach",
+        "_titleWarning": "The word 'Ten' hardcodes the service count. Adding an 11th service makes this string false.",
+        "lead": "Alternative medicine treats the whole person — mind, body and spirit — rather than just the symptom that brought you in.",
+        "action": { "label": "All services", "href": "/services" },
+        "railScreenReaderLabel": "Therapies"
+      },
+      "statsBand": {
+        "_source": "src/components/sections/HomeSections.tsx:160-186",
+        "_note": "No headings. Renders `stats` from site-content.ts via CountUp. See data/stats.json."
+      },
+      "testimonials": {
+        "_source": "src/components/sections/HomeSections.tsx:304-333",
+        "label": "Happy patients",
+        "title": "In their own words",
+        "action": { "label": "All 23 reviews", "labelJsx": "All {testimonials.length} reviews", "href": "/testimonials" },
+        "_note": "Renders featuredTestimonials (6) in a horizontal rail with clamped quotes."
+      },
+      "healthTalks": {
+        "_source": "src/components/sections/HomeSections.tsx:398-419",
+        "label": "Our expert",
+        "title": "Health talks",
+        "lead": "Mrs. Anjana Bhargavi on pressure points, diet and the small daily fixes that make a difference.",
+        "leadJsx": "`${site.founder.honorific} ${site.founder.name} on pressure points, diet and the small daily fixes that make a difference.`",
+        "action": { "label": "All videos", "href": "/videos" },
+        "_note": "Renders featuredVideos.slice(0, 6)."
+      },
+      "whyUs": {
+        "_source": "src/components/sections/HomeSections.tsx:192-244",
+        "label": "Why choose us",
+        "title": "Reasons people come back",
+        "action": { "label": "Patient stories", "href": "/testimonials" },
+        "itemsFrom": "src/content/site-content.ts -> whyChooseUs (4 items with icons)"
+      },
+      "appointmentBand": {
+        "_source": "src/components/sections/HomeSections.tsx:339-392",
+        "label": "For appointment",
+        "title": "Walk in to exceptional care",
+        "lead": "Tell us what's troubling you and when suits. We call back to confirm — usually the same day.",
+        "rows": [
+          { "k": "Call", "v": "+91 70751 57013", "vJsx": "site.phones[0].label", "href": "site.phones[0].href" },
+          { "k": "WhatsApp", "v": "Chat with the clinic", "href": "site.whatsapp.href" },
+          { "k": "Visit", "v": "H. No 1-8-539/1/a, Metro Pillar No-1115, Near Pista House, Chikkadpally, Hyderabad, Telangana - 500020", "vJsx": "site.address.full", "href": "site.mapsUrl" }
+        ],
+        "formCardTitle": "Request an appointment",
+        "formCardNote": "Fields marked * are required.",
+        "formCardNoteJsx": "Fields marked <span className=\"text-terracotta\">*</span> are required."
+      },
+      "faqSection": {
+        "_source": "src/components/sections/HomeSections.tsx:462-486",
+        "label": "What people ask",
+        "title": "Questions before you book",
+        "lead": "Understanding alternate therapies is part of getting the right treatment — and of helping your body along.",
+        "action": { "label": "Ask us something else", "href": "/contact" }
+      },
+      "ctaBand": {
+        "_source": "src/components/sections/HomeSections.tsx:497-532",
+        "_usedOn": "home, /about, /services, /services/[slug], /gallery, /videos, /testimonials, /blog, /careers",
+        "label": "Start today",
+        "title": "Your body has been asking for this",
+        "lead": "Book a consultation and find out what is actually causing the pain — then what to do about it.",
+        "ctaPrimary": { "label": "Book an appointment", "href": "/contact" },
+        "ctaSecondary": { "label": "Call +91 70751 57013", "labelJsx": "Call {site.phones[0].label}", "href": "site.phones[0].href" }
+      },
+      "galleryRail": {
+        "_source": "src/components/sections/HomeSections.tsx:425-456",
+        "_status": "DEAD CODE - exported but never imported anywhere (verified zero importers). Preserved because the copy is client-facing content that was written and may have been intended for the home page.",
+        "label": "Inside the clinic",
+        "title": "A calm, private place to heal",
+        "action": { "label": "View gallery", "href": "/gallery" },
+        "_note": "Would render galleryImages.slice(0, 6)."
+      },
+      "processSteps": {
+        "_source": "src/components/sections/HomeSections.tsx:250-298",
+        "_usedOn": "/about and /services (NOT the home page)",
+        "label": "How it works",
+        "title": "Your first visit, step by step",
+        "lead": "No guesswork and no packages you didn't ask for. Here is exactly what happens from the moment you walk in.",
+        "itemsFrom": "src/content/site-content.ts -> process (4 steps)"
+      }
+    }
+  },
+
+  "about": {
+    "_sourceFile": "src/app/about/page.tsx",
+    "slots": {
+      "hero": {
+        "breadcrumb": ["Home", "About"],
+        "label": "Our founder",
+        "title": "Mrs. Anjana Bhargavi",
+        "titleJsx": "{site.founder.honorific} <span className=\"italic\">Anjana</span> Bhargavi",
+        "lead": "Founder Acupuncture",
+        "leadJsx": "{site.founder.role}"
+      },
+      "story": {
+        "label": "Her story",
+        "title": "The brain child behind Bhargavi Health World",
+        "bodyFrom": "src/content/site-content.ts -> aboutStory (3 paragraphs)",
+        "portrait": { "src": "/images/team/anjana-bhargavi.jpg", "alt": "Mrs. Anjana Bhargavi", "altJsx": "`${site.founder.honorific} ${site.founder.name}`" },
+        "pullQuote": "“The only way to do great work is to love what you do.”",
+        "pullQuoteCaption": "The belief the clinic was built on",
+        "cta": { "label": "Consult with Anjana", "labelJsx": "Consult with {site.founder.name.split(\" \")[0]}", "href": "/contact" }
+      },
+      "achievements": {
+        "label": "Recognition",
+        "title": "Some key achievements",
+        "lead": "Beyond the clinic, her work extends into lecturing, NGO service and community health.",
+        "itemsFrom": "src/content/site-content.ts -> achievements (5 items)"
+      },
+      "philosophy": {
+        "_source": "src/app/about/page.tsx:26-39 - HARDCODED INSIDE THE PAGE FILE, not in any content file",
+        "label": "Our philosophy",
+        "title": "Three things we hold to",
+        "items": [
+          { "title": "Treat the cause", "text": "Pain is a message, not the problem. We look at posture, diet, sleep and stress before we reach for a needle." },
+          { "title": "Complement, never replace", "text": "These therapies work alongside your existing medical care. Bring your prescriptions — we build the plan around them." },
+          { "title": "Teach you to self-care", "text": "Every patient leaves knowing which points to press, what to eat, and what to do between sittings." }
+        ]
+      },
+      "theSpace": {
+        "label": "The space",
+        "title": "Where treatment happens",
+        "lead": "Clean, private treatment rooms in Chikkadpally — a two-minute walk from Metro Pillar 1115.",
+        "_note": "Renders galleryImages.slice(0, 4)."
+      },
+      "reusedSections": ["StatsBand", "ProcessSteps", "Testimonials", "CtaBand"]
+    }
+  },
+
+  "services": {
+    "_sourceFile": "src/app/services/page.tsx",
+    "slots": {
+      "hero": {
+        "compact": true,
+        "breadcrumb": ["Home", "Services"],
+        "label": null,
+        "title": "Ten therapies, one whole-person approach",
+        "titleJsx": "Ten therapies, one <span className=\"italic\">whole-person</span> approach",
+        "_titleWarning": "The word 'Ten' hardcodes the service count."
+      },
+      "faqSection": {
+        "label": "Before you book",
+        "title": "Common questions",
+        "lead": "Still unsure which therapy fits? Call us and we'll tell you honestly — including when we are not the right option."
+      },
+      "reusedSections": ["ProcessSteps", "CtaBand"],
+      "_grid": "Renders all 10 services as ServiceCard with a 1-based index badge."
+    }
+  },
+
+  "serviceDetail": {
+    "_sourceFile": "src/app/services/[slug]/page.tsx",
+    "_appliesTo": "All 10 /services/[slug] pages - these strings are identical on every one",
+    "slots": {
+      "breadcrumb": ["Home", "Services", "<service.title>"],
+      "metaRow": {
+        "_source": "lines 96-100",
+        "_critical": "These three rows render identically on ALL 10 service pages. Only the first reads from data.",
+        "items": [
+          { "label": "Session length", "value": "<service.duration>", "isData": true },
+          { "label": "From", "value": "₹100", "isData": false, "_note": "HARDCODED. Not a service field. Unconfirmed placeholder." },
+          { "label": "Typical course", "value": "2–4 sittings", "isData": false, "_note": "HARDCODED. Not a service field." }
+        ]
+      },
+      "overview": { "label": "Overview", "title": "About this therapy", "bodyFrom": "service.body (array of paragraphs)" },
+      "indications": { "label": "Indications", "title": "What it can help with", "bodyFrom": "service.treats (array)" },
+      "disclaimer": "Please note: this is a complementary therapy. It works alongside — not instead of — the medical care you already receive. Bring your current prescriptions to your first consultation.",
+      "disclaimerJsx": "<strong className=\"font-semibold\">Please note:</strong> this is a complementary therapy. It works alongside — not instead of — the medical care you already receive. Bring your current prescriptions to your first consultation.",
+      "bookingAside": {
+        "title": "Book <service.title>",
+        "titleJsx": "Book {service.title}",
+        "note": "We call back to confirm your slot — usually the same day."
+      },
+      "callAside": {
+        "label": "Prefer to call?",
+        "_phones": "Lists both site.phones with branch label above the number",
+        "hours": "Mon–Sun · 9:00 AM – 9:00 PM",
+        "_hoursNote": "HARDCODED at line 192, duplicating site.hours",
+        "whatsappCta": { "label": "Ask on WhatsApp", "hrefJsx": "whatsappUrl(`Enquiry about ${service.title}`)", "_note": "No branch argument - uses the default (Bowenpally) number" }
+      },
+      "related": {
+        "label": "Explore more",
+        "title": "Other therapies you might need",
+        "_logic": "services.filter(s => s.slug !== service.slug).slice(0, 3) - first three others, not curated"
+      },
+      "heroImageAlt": "<service.title> at Bhargavi Health World",
+      "heroImageAltJsx": "`${service.title} at ${site.name}`",
+      "reusedSections": ["CtaBand"]
+    }
+  },
+
+  "gallery": {
+    "_sourceFile": "src/app/gallery/page.tsx",
+    "slots": {
+      "hero": {
+        "breadcrumb": ["Home", "Media", "Clinic Gallery"],
+        "breadcrumbHrefs": ["/", "/gallery", null],
+        "label": "Inside the clinic",
+        "title": "A look around the clinic",
+        "titleJsx": "A look <span className=\"italic\">around</span> the clinic",
+        "lead": "Treatment rooms, therapy charts and the everyday work of natural healing in Chikkadpally."
+      },
+      "reusedSections": ["CtaBand"]
+    }
+  },
+
+  "videos": {
+    "_sourceFile": "src/app/videos/page.tsx",
+    "slots": {
+      "hero": {
+        "breadcrumb": ["Home", "Media", "Health Talks"],
+        "breadcrumbHrefs": ["/", "/gallery", null],
+        "label": "Our expert",
+        "title": "Health talks",
+        "titleJsx": "Health <span className=\"italic\">talks</span>",
+        "lead": "Mrs. Anjana Bhargavi on pressure points, diet and the small daily fixes that make a difference. Several talks are in Telugu.",
+        "leadJsx": "`${site.founder.honorific} ${site.founder.name} on pressure points, diet and the small daily fixes that make a difference. Several talks are in Telugu.`"
+      },
+      "subscribeCta": { "label": "Subscribe on YouTube", "hrefJsx": "site.socials.find(s => s.name === \"YouTube\")!.href", "_warning": "Non-null assertion at line 20 - breaks the page if the YouTube social entry is removed" },
+      "reusedSections": ["CtaBand"],
+      "_grid": "Renders all 19 videos"
+    }
+  },
+
+  "testimonials": {
+    "_sourceFile": "src/app/testimonials/page.tsx",
+    "slots": {
+      "hero": {
+        "breadcrumb": ["Home", "Testimonials"],
+        "label": "Happy patients",
+        "title": "In their own words",
+        "titleJsx": "In their <span className=\"italic\">own</span> words",
+        "lead": "23 reviews from people treated for pain, thyroid, PCOD, migraine, post-surgery recovery and more.",
+        "leadJsx": "`${testimonials.length} reviews from people treated for pain, thyroid, PCOD, migraine, post-surgery recovery and more.`",
+        "_leadNote": "The count is dynamic (correctly derived from .length)"
+      },
+      "reusedSections": ["CtaBand"],
+      "_layout": "CSS masonry columns. Renders all 23."
+    }
+  },
+
+  "blog": {
+    "_sourceFile": "src/app/blog/page.tsx",
+    "_status": "PLACEHOLDER - no post data exists, no /blog/[slug] route exists. This 'coming soon' copy is the entire current content.",
+    "_sourceFileComment": "PLACEHOLDER — the old site's blog had no posts. The grid, single-post template and `.prose-bhw` styles are built — drop in content and swap the page. See docs/CONTENT-TODO.md #8.",
+    "slots": {
+      "hero": {
+        "breadcrumb": ["Home", "Blog"],
+        "label": "Journal",
+        "title": "Notes on natural healing",
+        "titleJsx": "Notes on <span className=\"italic\">natural</span> healing",
+        "lead": "Practical writing on pressure points, diet and everyday pain relief — from the clinic floor."
+      },
+      "comingSoon": {
+        "label": "Coming soon",
+        "title": "The first articles are being written",
+        "lead": "Acupressure points you can use at home, what to eat for joint pain, and what really happens in a cupping session.",
+        "secondary": "In the meantime, the Health Talks videos cover much of the same ground.",
+        "ctaPrimary": { "label": "Watch Health Talks", "href": "/videos" },
+        "ctaSecondary": { "label": "Browse therapies", "href": "/services" }
+      },
+      "reusedSections": ["CtaBand"]
+    }
+  },
+
+  "careers": {
+    "_sourceFile": "src/app/careers/page.tsx",
+    "slots": {
+      "openings": {
+        "_note": "This section doubles as the page header - there is no separate PageHero",
+        "label": "Open positions",
+        "title": "Current openings",
+        "asideTitle": "Grow with Bhargavi Health World",
+        "asideTitleJsx": "Grow with <span className=\"italic\">Bhargavi</span> Health World",
+        "asideLead": "Join a small team that treats the cause, not just the pain — shortlisted candidates hear back within a week."
+      },
+      "generalApplication": {
+        "label": "No matching role?",
+        "title": "We still want to hear from you",
+        "lead": "If you care about honest, patient-first wellness work, send a general application — we keep good people in mind.",
+        "ctaPrimary": { "label": "Send a general application", "href": "#apply" },
+        "ctaSecondary": { "label": "Email your resume to bhargavihealthworld@gmail.com", "labelJsx": "Email your resume to {site.email}", "href": "mailto:bhargavihealthworld@gmail.com?subject=Job%20application%20%E2%80%94%20Bhargavi%20Health%20World" }
+      },
+      "apply": {
+        "label": "Apply",
+        "title": "Tell us about yourself",
+        "lead": "Fill in the form and we'll get back to you — shortlisted candidates hear from us within a week.",
+        "resumeInstruction": "Email your resume to bhargavihealthworld@gmail.com with the role in the subject line.",
+        "resumeInstructionJsx": "Email your resume to <a href={mailtoHref}>{site.email}</a> with the role in the subject line.  (preceded by a <Seed /> glyph)",
+        "callLabel": "Prefer to call?",
+        "_phones": "Lists both site.phones as '{label} · {branch}'",
+        "hours": "Open Monday – Sunday, 9:00 AM – 9:00 PM",
+        "hoursJsx": "Open {site.hours[0].days}, {site.hours[0].time}",
+        "formRoleDefault": "General application"
+      },
+      "mailtoSubject": "Job application — Bhargavi Health World",
+      "mailtoSubjectJsx": "`mailto:${site.email}?subject=${encodeURIComponent(\"Job application — Bhargavi Health World\")}`",
+      "_mailtoNote": "The subject does NOT include the role, although the copy asks the applicant to add it manually.",
+      "jobCards": {
+        "_source": "src/components/careers/JobOpenings.tsx",
+        "indexBadge": "01, 02, ... (1-based, zero-padded)",
+        "metaLine": "<type> · <branch> · <experience>",
+        "applyButton": "Apply for this role",
+        "responsibilitiesHeading": "Responsibilities",
+        "requirementsHeading": "What you'll need",
+        "modalLabel": "Apply",
+        "modalAriaLabel": "Apply — <job.title>",
+        "modalCloseLabel": "Close",
+        "_emptyState": "NONE - no empty state exists. If `jobs` were empty the section would render an empty list with the headings still shown."
+      },
+      "reusedSections": ["CtaBand"]
+    }
+  },
+
+  "contact": {
+    "_sourceFile": "src/app/contact/page.tsx",
+    "slots": {
+      "hero": {
+        "breadcrumb": ["Home", "Contact"],
+        "label": "For appointment",
+        "title": "Book a consultation",
+        "titleJsx": "Book a <span className=\"italic\">consultation</span>",
+        "lead": "Walk in to experience a world of exceptional care in alternate medicine — or reserve a slot so you don't have to wait.",
+        "asideCtaPrimary": { "label": "Call +91 70751 57013", "labelJsx": "Call {site.phones[0].label}", "href": "site.phones[0].href" },
+        "asideCtaSecondary": { "label": "WhatsApp us", "href": "site.whatsapp.href" },
+        "asideBadge": "OpenStatus component (live open/closed badge)"
+      },
+      "infoCards": {
+        "_source": "src/app/contact/page.tsx:23-62",
+        "items": [
+          { "label": "Call", "icon": "phone", "linesJsx": "site.phones.map(p => `${p.branch} · ${p.label}`)", "linesRendered": ["Bowenpally · +91 70751 57013", "Chikkadpally · +91 98663 76203"], "cta": "Tap to call", "href": "site.phones[0].href" },
+          { "label": "Visit", "icon": "pin", "linesJsx": "[site.address.line1, site.address.line2, `${site.address.city} – ${site.address.postalCode}`]", "linesRendered": ["H. No 1-8-539/1/a, Metro Pillar No-1115", "Near Pista House, Chikkadpally", "Hyderabad – 500020"], "cta": "Open in Maps", "href": "site.mapsUrl" },
+          { "label": "Email", "icon": "mail", "linesRendered": ["bhargavihealthworld@gmail.com"], "cta": "Send an email", "href": "mailto:bhargavihealthworld@gmail.com" },
+          { "label": "Hours", "icon": "clock", "linesJsx": "site.hours.map(h => `${h.days} · ${h.time}`)", "linesRendered": ["Monday – Sunday · 9:00 AM – 9:00 PM"], "cta": "Message on WhatsApp", "href": "site.whatsapp.href", "_extra": "Also renders the OpenStatus badge inside this card" }
+        ]
+      },
+      "map": {
+        "iframeTitle": "Map showing Bhargavi Health World, Chikkadpally",
+        "iframeTitleJsx": "`Map showing ${site.name}, Chikkadpally`",
+        "src": "site.mapEmbedSrc",
+        "captionBelow": "Near Pista House, Chikkadpally · Metro Pillar 1115",
+        "_captionNote": "HARDCODED at line 175 - duplicates the address in different wording",
+        "directionsLink": { "label": "Get directions", "href": "site.mapsUrl" }
+      },
+      "messageBlock": {
+        "title": "Leave a message instead",
+        "lead": "Not ready to book? Ask a question and we’ll reply.",
+        "_note": "Uses a curly apostrophe (’) in 'we’ll' — unlike most other copy which uses a straight apostrophe",
+        "form": "ContactForm with tone=\"dark\""
+      },
+      "appointmentBlock": {
+        "label": "For appointment",
+        "title": "Tell us what's troubling you",
+        "lead": "Share a little detail and a time that suits. We call back to confirm — usually the same day.",
+        "form": "AppointmentForm (full, not compact)"
+      },
+      "faqSection": {
+        "label": "Before you come in",
+        "title": "Quick answers"
+      },
+      "reusedSections": []
+    }
+  },
+
+  "notFound": {
+    "_sourceFile": "src/app/not-found.tsx",
+    "_note": "Exports NO metadata.",
+    "slots": {
+      "label": "Error 404",
+      "bigNumeral": "404",
+      "title": "This page has wandered off",
+      "lead": "The link may be old, or the page may have moved. Let us get you back to something useful.",
+      "ctaPrimary": { "label": "Back to home", "href": "/" },
+      "ctaSecondary": { "label": "Browse therapies", "href": "/services" }
+    }
+  }
+}

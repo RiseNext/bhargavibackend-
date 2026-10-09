@@ -1,0 +1,241 @@
+{
+  "_meta": {
+    "_extractedFrom": "src/lib/site.ts",
+    "_note": "Verbatim `site` object. This is the frontend's single source for business facts.",
+    "sourceFileComment": "Single source of truth for business details. Everything here came from the client's old site (see docs/textprd.md 1). Items flagged CONFIRM are open questions — see docs/CONTENT-TODO.md.",
+    "ownerDecisions": [
+      "D-003: these values ARE the initial production content.",
+      "D-004: email value is the initial value; must become admin-editable.",
+      "D-005: opening hours are the initial values; must become admin-editable and structured/per-branch.",
+      "D-006: address is the initial value; must become admin-editable."
+    ],
+    "founderHonorificNote": "Source carries a CONFIRM comment at site.ts:23 - 'old site mixes \"Mrs.\" and \"Dr.\" — qualifications list no medical degree'. Current rendered value is 'Mrs.' everywhere.",
+    "urlNote": "`url` is env-overridable: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.bhargavihealthworld.com'. The literal fallback is recorded below.",
+    "themeColorNote": "site.brandColor is '#44683d' but layout.tsx:53 sets viewport.themeColor to '#3d2a1e' - two different values.",
+    "hoursNote": "Display strings only. See data/site-settings.json -> openingHoursAllOccurrences for every place hours appear."
+  },
+  "site": {
+    "name": "Bhargavi Health World",
+    "shortName": "Bhargavi",
+    "tagline": "Wellness Center in Chikkadpally",
+    "description": "Holistic wellness care in Chikkadpally, Hyderabad. Acupuncture, acupressure, naturopathy and natural pain-relief therapies led by Anjana Bhargavi.",
+    "url": "https://www.bhargavihealthworld.com",
+    "locale": "en_IN",
+    "founder": {
+      "name": "Anjana Bhargavi",
+      "honorific": "Mrs.",
+      "qualifications": "BA, B.Ed, MA, Diploma in Acupuncture",
+      "role": "Founder Acupuncture",
+      "photo": "/images/team/anjana-bhargavi.jpg"
+    },
+    "phones": [
+      {
+        "label": "+91 70751 57013",
+        "href": "tel:+917075157013",
+        "branch": "Bowenpally"
+      },
+      {
+        "label": "+91 98663 76203",
+        "href": "tel:+919866376203",
+        "branch": "Chikkadpally"
+      }
+    ],
+    "branches": [
+      {
+        "name": "Chikkadpally",
+        "phone": "+91 98663 76203",
+        "whatsapp": "+919866376203"
+      },
+      {
+        "name": "Bowenpally",
+        "phone": "+91 70751 57013",
+        "whatsapp": "+917075157013"
+      }
+    ],
+    "whatsapp": {
+      "number": "+917075157013",
+      "href": "https://api.whatsapp.com/send?phone=+917075157013&text=hello&lang=en"
+    },
+    "email": "bhargavihealthworld@gmail.com",
+    "address": {
+      "line1": "H. No 1-8-539/1/a, Metro Pillar No-1115",
+      "line2": "Near Pista House, Chikkadpally",
+      "city": "Hyderabad",
+      "state": "Telangana",
+      "postalCode": "500020",
+      "country": "IN",
+      "full": "H. No 1-8-539/1/a, Metro Pillar No-1115, Near Pista House, Chikkadpally, Hyderabad, Telangana - 500020"
+    },
+    "geo": {
+      "lat": 17.405174930115965,
+      "lng": 78.49652574603265
+    },
+    "mapsUrl": "https://maps.app.goo.gl/XLX7hEATPodxRXa4A",
+    "mapEmbedSrc": "https://www.google.com/maps?q=17.405174930115965,78.49652574603265&z=16&output=embed",
+    "priceRange": "₹100–1000",
+    "hours": [
+      {
+        "days": "Monday – Sunday",
+        "time": "9:00 AM – 9:00 PM"
+      }
+    ],
+    "socials": [
+      {
+        "name": "Facebook",
+        "href": "https://www.facebook.com/Bhargavihealthworld"
+      },
+      {
+        "name": "Instagram",
+        "href": "https://www.instagram.com/bhargavihealthworld/"
+      },
+      {
+        "name": "YouTube",
+        "href": "https://www.youtube.com/@bhargavihealthworld8686"
+      }
+    ],
+    "logo": "/images/brand/bhargavi-mark.png",
+    "logoLockup": "/images/brand/bhargavi-lockup.png",
+    "brandColor": "#44683d",
+    "ogImage": "/images/brand/og-card.png",
+    "_urlIsEnvOverridable": "process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.bhargavihealthworld.com'"
+  },
+  "openingHoursAllOccurrences": [
+    {
+      "sourceFile": "src/lib/site.ts",
+      "line": "64-66",
+      "form": "display strings (canonical source)",
+      "value": [
+        {
+          "days": "Monday – Sunday",
+          "time": "9:00 AM – 9:00 PM"
+        }
+      ]
+    },
+    {
+      "sourceFile": "src/components/ui/OpenStatus.tsx",
+      "line": "13-15",
+      "form": "minutes since midnight (independent duplicate)",
+      "value": [
+        {
+          "from": 540,
+          "to": 1260,
+          "opens": "9:00 AM",
+          "closes": "9:00 PM"
+        }
+      ],
+      "comment": "Mirrors `site.hours`. Keep the two in step if the hours ever change."
+    },
+    {
+      "sourceFile": "src/components/ui/OpenStatus.tsx",
+      "line": "40",
+      "form": "fallback string",
+      "value": "Opens tomorrow, 9:00 AM"
+    },
+    {
+      "sourceFile": "src/app/layout.tsx",
+      "line": "83-98",
+      "form": "schema.org openingHoursSpecification",
+      "value": {
+        "dayOfWeek": [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday"
+        ],
+        "opens": "09:00",
+        "closes": "21:00"
+      }
+    },
+    {
+      "sourceFile": "src/app/services/[slug]/page.tsx",
+      "line": "192",
+      "form": "inline JSX string (all 10 service pages)",
+      "value": "Mon–Sun · 9:00 AM – 9:00 PM"
+    },
+    {
+      "sourceFile": "src/content/site-content.ts",
+      "line": "101",
+      "form": "inside FAQ answer text",
+      "value": "Every day, Monday to Sunday, 9:00 AM – 9:00 PM."
+    },
+    {
+      "sourceFile": "src/components/layout/Footer.tsx",
+      "line": "118",
+      "form": "DERIVED from site.hours (consumer, not a source)",
+      "value": "site.hours.map(h => `${h.days} ${h.time}`).join(' · ')"
+    },
+    {
+      "sourceFile": "src/app/contact/page.tsx",
+      "line": "58",
+      "form": "DERIVED from site.hours (consumer)",
+      "value": "site.hours.map(h => `${h.days} · ${h.time}`)"
+    },
+    {
+      "sourceFile": "src/app/careers/page.tsx",
+      "line": "112",
+      "form": "DERIVED from site.hours (consumer)",
+      "value": "Open {site.hours[0].days}, {site.hours[0].time}"
+    }
+  ],
+  "openingHoursConsistency": {
+    "withinFrontend": "CONSISTENT - every occurrence says 9:00 AM - 9:00 PM, Monday-Sunday (7 days).",
+    "versusOldSiteDocument": "CONFLICT - backend/textprd.md:28-30 (old website extract) states 'Monday-Saturday: 10:00 AM - 1:30 PM and 4:00 PM - 7:30 PM' with 'Sunday: Closed'.",
+    "resolution": "Owner decision D-005: the CURRENT FRONTEND VALUE (9:00 AM - 9:00 PM, Mon-Sun) is the initial database value. The old-site discrepancy is preserved here and in docs/REQUIREMENTS-COMPARISON.md R-1, not deleted."
+  },
+  "founder": {
+    "name": "Anjana Bhargavi",
+    "honorific": "Mrs.",
+    "qualifications": "BA, B.Ed, MA, Diploma in Acupuncture",
+    "role": "Founder Acupuncture",
+    "photo": "/images/team/anjana-bhargavi.jpg",
+    "_photoAssetCopiedTo": "assets/founder/anjana-bhargavi.jpg",
+    "_storyLocation": "Founder story prose lives in src/content/site-content.ts -> aboutStory (3 paragraphs) and homeIntro. See data/page-content.json."
+  },
+  "navigationSource": [
+    {
+      "label": "Home",
+      "href": "/"
+    },
+    {
+      "label": "About",
+      "href": "/about"
+    },
+    {
+      "label": "Services",
+      "href": "/services"
+    },
+    {
+      "label": "Media",
+      "href": "/gallery",
+      "children": [
+        {
+          "label": "Clinic Gallery",
+          "href": "/gallery"
+        },
+        {
+          "label": "Health Talks",
+          "href": "/videos"
+        }
+      ]
+    },
+    {
+      "label": "Testimonials",
+      "href": "/testimonials"
+    },
+    {
+      "label": "Blog",
+      "href": "/blog"
+    },
+    {
+      "label": "Careers",
+      "href": "/careers"
+    },
+    {
+      "label": "Contact",
+      "href": "/contact"
+    }
+  ]
+}
