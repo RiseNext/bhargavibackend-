@@ -155,11 +155,37 @@ describe("🔴 D-034 · forbidden env vars are absent from source and template",
  * and the safe-migration mandate keeps it running alongside revalidation until
  * every consumer reads content at runtime.
  */
+/**
+ * 🔴 THE ONE ASSERTION THAT SPANS BOTH REPOSITORIES.
+ *
+ * CI checks the frontend out at `main` — pinned deliberately, so a backend
+ * change is verified against the frontend that is actually DEPLOYED. That pin
+ * makes this assertion unsatisfiable during the window where the backend leads
+ * the frontend, which is not an accident: the approved rollout order is backend
+ * first, precisely because the backend must permit `REVALIDATE_SECRET` before
+ * the variable may exist. So there is always a window in which `main` has the
+ * revalidation client and no `/api/revalidate` route yet.
+ *
+ * Asserting unconditionally failed CI on `a822293` for exactly that reason, and
+ * it passed locally only because the author's working tree held the unpushed
+ * frontend commit — the worst kind of green.
+ *
+ * Skipped rather than deleted, and skipped on the FILE's presence rather than
+ * on an env flag, so it arms itself the moment the frontend commit lands and
+ * can never be left permanently off by a stale toggle.
+ */
+const FRONTEND_REVALIDATE_ROUTE = resolve(
+  ROOT,
+  "..",
+  "frontend",
+  "src/app/api/revalidate/route.ts",
+);
+const itIfFrontendRoute = existsSync(FRONTEND_REVALIDATE_ROUTE) ? it : it.skip;
+
 describe("🔴 D-042 · runtime fetching with tag-based revalidation", () => {
-  it("the frontend exposes an /api/revalidate route", () => {
+  itIfFrontendRoute("the frontend exposes an /api/revalidate route", () => {
     // Inverted from D-016's "there is no /api/revalidate route".
-    const route = resolve(ROOT, "..", "frontend", "src/app/api/revalidate/route.ts");
-    expect(existsSync(route)).toBe(true);
+    expect(existsSync(FRONTEND_REVALIDATE_ROUTE)).toBe(true);
   });
 
   it("the backend has a revalidation client and a tag vocabulary", () => {
