@@ -184,19 +184,38 @@ describeIfFrontend("the frontend consumes generated content, not its own copy", 
    * A component that imports nothing renders nothing, which would pass the two
    * negative assertions above.
    */
-  it("🔴 the About page reads the generated philosophy", () => {
+  /*
+   * ⚠ Updated by D-042 tranche 1, and deliberately made STRICTER.
+   *
+   * These two assertions used to require a static import from
+   * `@/content/site-content` — the generated snapshot. Tranche 1 moves these
+   * surfaces to the runtime readers, which is a strictly better CMS source: the
+   * snapshot only refreshes on a deployment, the reader refreshes on tag
+   * revalidation. So each now requires the READER, which also blocks a
+   * regression back to the build-time snapshot.
+   *
+   * The property being defended is unchanged — these pages must not hold their
+   * own copy of admin-managed content — and the negative assertions above,
+   * which are the ones that caught the original bug, still pass untouched.
+   */
+  it("🔴 the About page reads philosophy from the CMS at runtime", () => {
     const source = readFileSync(resolve(SRC, "app", "about", "page.tsx"), "utf8");
-    expect(source).toMatch(/import\s*\{[^}]*\bphilosophy\b[^}]*\}\s*from\s*"@\/content\/site-content"/);
+    expect(source).toMatch(/getPhilosophy/);
+    expect(source).toMatch(/from\s*"@\/lib\/content"/);
     expect(source).toContain("philosophy.map");
+    // Not back via the snapshot.
+    expect(source).not.toMatch(/import\s*\{[^}]*\bphilosophy\b[^}]*\}\s*from\s*"@\/content\/site-content"/);
   });
 
-  it("🔴 the hero resolves its statistics from `stats` using D-023's rule", () => {
+  it("🔴 the hero resolves its statistics from the CMS using D-023's rule", () => {
     const source = readFileSync(resolve(SRC, "components", "sections", "Hero.tsx"), "utf8");
 
-    expect(source).toMatch(/import\s*\{[^}]*\bstats\b[^}]*\}\s*from\s*"@\/content\/site-content"/);
+    expect(source).toMatch(/getStats/);
+    expect(source).toMatch(/from\s*"@\/lib\/content"/);
     // `showInHero` selects the rows; `heroLabel ?? label` is the resolution
-    // rule. Both fields were emitted and unread before this.
+    // rule. Both fields were emitted and unread before 2026-10-10.
     expect(source).toContain("showInHero");
     expect(source).toMatch(/heroLabel\s*\?\?\s*/);
+    expect(source).not.toMatch(/import\s*\{[^}]*\bstats\b[^}]*\}\s*from\s*"@\/content\/site-content"/);
   });
 });
