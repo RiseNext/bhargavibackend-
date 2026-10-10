@@ -8,9 +8,14 @@
  * alternative is writing patient messages nobody can decrypt.
  *
  * Variable names and classes are fixed by D-034 / blueprint §F.1. The forbidden
- * groups (CONTACT_TO_EMAIL*, STORAGE_*, REVALIDATE_*, NEXT_PUBLIC_API_URL,
+ * groups (CONTACT_TO_EMAIL*, STORAGE_*, NEXT_PUBLIC_API_URL,
  * FIELD_ENCRYPTION_KEY singular) are asserted absent — reintroducing one is a
  * boot failure, not a silent regression.
+ *
+ * ⚠ REVALIDATE_* is NO LONGER in that set. D-034 banned it only because D-016
+ * had ruled out revalidation; D-042 reverses that premise, so D-043 re-permits
+ * `REVALIDATE_SECRET`. Leaving the ban in place would make the approved
+ * architecture unbootable.
  */
 
 import { z } from "zod";
@@ -41,8 +46,6 @@ const FORBIDDEN_ENV_VARS = [
   "STORAGE_BUCKET",
   "STORAGE_PUBLIC_BASE_URL",
   "STORAGE_REGION",
-  "REVALIDATE_URL",
-  "REVALIDATE_SECRET",
   "NEXT_PUBLIC_API_URL",
   "FIELD_ENCRYPTION_KEY",
 ] as const;
@@ -146,6 +149,11 @@ const schema = z.object({
   BACKEND_API_KEY: z.string().min(16),
 
   VERCEL_DEPLOY_HOOK_URL: optionalNonEmpty,
+
+  // ✅ D-043 re-permits this; D-034 had banned it only because D-016 had ruled
+  // out revalidation. It authorises cache invalidation on the live site, so it
+  // is a capability: server-only, never NEXT_PUBLIC_*, never logged.
+  REVALIDATE_SECRET: optionalNonEmpty,
   REDIS_URL: optionalNonEmpty,
 });
 

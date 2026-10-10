@@ -21,6 +21,7 @@ import { audit } from "../audit";
 import { requireAdmin, requireAdminMutation } from "../auth/guard";
 import { query, queryOne, transaction } from "../db";
 import { queueDeployHook } from "../deploy-hook";
+import { revalidateForReasonDetached } from "../revalidate";
 import { invalidJson, notFound, unprocessable } from "../errors";
 import { CACHE_NO_STORE, clientIp, handle, items, readJsonBody, respond } from "../http";
 import { allowedExtraKeys, validateExtra } from "../content/extra-allowlist";
@@ -157,6 +158,9 @@ export const putPageMetaAdmin = (request: Request): Promise<Response> =>
       });
 
       queueDeployHook("page-meta:update");
+      // D-042: publish by cache invalidation. Runs ALONGSIDE the hook
+      // until every consumer reads content at runtime.
+      revalidateForReasonDetached("page-meta:update");
 
       return respond(
         {
@@ -346,6 +350,9 @@ export const putContentBlockAdmin = (request: Request): Promise<Response> =>
       });
 
       queueDeployHook("content-blocks:update");
+      // D-042: publish by cache invalidation. Runs ALONGSIDE the hook
+      // until every consumer reads content at runtime.
+      revalidateForReasonDetached("content-blocks:update");
       return respond(row, { admin: true, cache: CACHE_NO_STORE });
     },
     { admin: true },
@@ -477,6 +484,9 @@ export const createBlockItem = (request: Request): Promise<Response> =>
       });
 
       queueDeployHook("content-block-items:create");
+      // D-042: publish by cache invalidation. Runs ALONGSIDE the hook
+      // until every consumer reads content at runtime.
+      revalidateForReasonDetached("content-block-items:create");
       return respond(row, { status: 201, admin: true, cache: CACHE_NO_STORE });
     },
     { admin: true },
@@ -539,6 +549,9 @@ export const putBlockItem = (request: Request): Promise<Response> =>
       });
 
       queueDeployHook("content-block-items:update");
+      // D-042: publish by cache invalidation. Runs ALONGSIDE the hook
+      // until every consumer reads content at runtime.
+      revalidateForReasonDetached("content-block-items:update");
       return respond(row, { admin: true, cache: CACHE_NO_STORE });
     },
     { admin: true },
@@ -575,6 +588,9 @@ export const deleteBlockItem = (request: Request): Promise<Response> =>
       });
 
       queueDeployHook("content-block-items:delete");
+      // D-042: publish by cache invalidation. Runs ALONGSIDE the hook
+      // until every consumer reads content at runtime.
+      revalidateForReasonDetached("content-block-items:delete");
       return respond({ ok: true }, { admin: true, cache: CACHE_NO_STORE });
     },
     { admin: true },
@@ -620,6 +636,9 @@ export const reorderBlockItems = (request: Request): Promise<Response> =>
       });
 
       queueDeployHook("content-block-items:reorder");
+      // D-042: publish by cache invalidation. Runs ALONGSIDE the hook
+      // until every consumer reads content at runtime.
+      revalidateForReasonDetached("content-block-items:reorder");
       return respond({ ok: true }, { admin: true, cache: CACHE_NO_STORE });
     },
     { admin: true },

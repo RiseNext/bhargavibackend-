@@ -25,6 +25,7 @@ import { audit } from "../audit";
 import { requireAdmin, requireAdminMutation } from "../auth/guard";
 import { query, queryOne, transaction } from "../db";
 import { queueDeployHook } from "../deploy-hook";
+import { revalidateForReasonDetached } from "../revalidate";
 import { conflict, invalidJson, notFound, unprocessable } from "../errors";
 import { CACHE_NO_STORE, clientIp, handle, readJsonBody, respond } from "../http";
 import { loadBranches } from "../settings/site-settings";
@@ -270,6 +271,9 @@ export const createBranch = (request: Request): Promise<Response> =>
       });
 
       queueDeployHook("branches:create");
+      // D-042: publish by cache invalidation. Runs ALONGSIDE the hook
+      // until every consumer reads content at runtime.
+      revalidateForReasonDetached("branches:create");
 
       return respond(
         { ...row, orderingWarning: ORDERING_WARNING },
@@ -405,6 +409,9 @@ export const updateBranch = (request: Request): Promise<Response> =>
       });
 
       queueDeployHook("branches:update");
+      // D-042: publish by cache invalidation. Runs ALONGSIDE the hook
+      // until every consumer reads content at runtime.
+      revalidateForReasonDetached("branches:update");
 
       return respond(
         {
@@ -498,6 +505,9 @@ export const reorderBranches = (request: Request): Promise<Response> =>
       });
 
       queueDeployHook("branches:reorder");
+      // D-042: publish by cache invalidation. Runs ALONGSIDE the hook
+      // until every consumer reads content at runtime.
+      revalidateForReasonDetached("branches:reorder");
 
       return respond(
         {

@@ -19,6 +19,7 @@ import { audit } from "@/lib/audit";
 import { requireAdmin, requireAdminMutation } from "@/lib/auth/guard";
 import { queryOne, transaction } from "@/lib/db";
 import { queueDeployHook } from "@/lib/deploy-hook";
+import { revalidateForReasonDetached } from "@/lib/revalidate";
 import { invalidJson, notFound, unprocessable } from "@/lib/errors";
 import { CACHE_NO_STORE, clientIp, handle, readJsonBody, respond } from "@/lib/http";
 import { loadBranches } from "@/lib/settings/site-settings";
@@ -211,6 +212,9 @@ export function PUT(request: Request): Promise<Response> {
       });
 
       queueDeployHook("site-settings:update");
+      // D-042: publish by cache invalidation. Runs ALONGSIDE the hook
+      // until every consumer reads content at runtime.
+      revalidateForReasonDetached("site-settings:update");
 
       return respond(
         { ...row, resolution: await resolutionBlock() },

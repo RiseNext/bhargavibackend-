@@ -29,6 +29,7 @@ import { audit } from "../audit";
 import { requireAdmin, requireAdminMutation } from "../auth/guard";
 import { query, queryOne, transaction } from "../db";
 import { queueDeployHook } from "../deploy-hook";
+import { revalidateForReasonDetached } from "../revalidate";
 import { conflict, invalidJson, notFound, unprocessable } from "../errors";
 import { CACHE_NO_STORE, clientIp, handle, paginated, readJsonBody, respond } from "../http";
 
@@ -254,6 +255,9 @@ export function createAdminCrud<TCreate, TUpdate>(
         // so this only matters once `published` is set, but queueing here keeps
         // the rule uniform.
         queueDeployHook(`${name}:create`);
+        // D-042: publish by cache invalidation. Runs ALONGSIDE the hook
+        // until every consumer reads content at runtime.
+        revalidateForReasonDetached(`${name}:create`);
 
         return respond(row, { status: 201, admin: true, cache: CACHE_NO_STORE });
       },
@@ -354,6 +358,9 @@ export function createAdminCrud<TCreate, TUpdate>(
         });
 
         queueDeployHook(`${name}:update`);
+        // D-042: publish by cache invalidation. Runs ALONGSIDE the hook
+        // until every consumer reads content at runtime.
+        revalidateForReasonDetached(`${name}:update`);
         return respond(row, { admin: true, cache: CACHE_NO_STORE });
       },
       { admin: true },
@@ -398,6 +405,9 @@ export function createAdminCrud<TCreate, TUpdate>(
         });
 
         queueDeployHook(`${name}:delete`);
+        // D-042: publish by cache invalidation. Runs ALONGSIDE the hook
+        // until every consumer reads content at runtime.
+        revalidateForReasonDetached(`${name}:delete`);
         return respond({ ok: true }, { admin: true, cache: CACHE_NO_STORE });
       },
       { admin: true },
@@ -472,6 +482,9 @@ export function createAdminCrud<TCreate, TUpdate>(
         });
 
         queueDeployHook(`${name}:publish`);
+        // D-042: publish by cache invalidation. Runs ALONGSIDE the hook
+        // until every consumer reads content at runtime.
+        revalidateForReasonDetached(`${name}:publish`);
         return respond(row, { admin: true, cache: CACHE_NO_STORE });
       },
       { admin: true },
@@ -530,6 +543,9 @@ export function createAdminCrud<TCreate, TUpdate>(
         });
 
         queueDeployHook(`${name}:reorder`);
+        // D-042: publish by cache invalidation. Runs ALONGSIDE the hook
+        // until every consumer reads content at runtime.
+        revalidateForReasonDetached(`${name}:reorder`);
         return respond({ ok: true }, { admin: true, cache: CACHE_NO_STORE });
       },
       { admin: true },

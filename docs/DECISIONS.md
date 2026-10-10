@@ -244,11 +244,17 @@ Two series, deliberately separated:
 
 ---
 
-## D-016 · Build-time content generation *(was B-4)*
+## D-016 · Build-time content generation *(was B-4)* — ⚠️ **SUPERSEDED by D-042**
+
+> 🔴 **SUPERSEDED on 2026-10-10 by [D-042](#d-042--runtime-content-fetching-with-tag-based-on-demand-revalidation-supersedes-d-016).**
+> Content is now fetched at runtime and published by tag revalidation, not by a rebuild. The
+> generator and the deploy hook survive in the narrowed role described in D-042a. The reasoning
+> below is kept intact because it was sound on its evidence, and because its cost estimate
+> ("7 client components") is the figure D-042 re-measured and corrected to 6.
 
 | | |
 |---|---|
-| **Status** | ✅ APPROVED |
+| **Status** | ⚠️ SUPERSEDED (was ✅ APPROVED) |
 | **Date** | 2026-10-08 |
 | **Decision** | The frontend **fetches backend content at build time** and **generates the content shapes it already uses**. It does **not** fetch content at runtime |
 | **Flow** | `Admin changes content → backend/database → frontend build/deploy hook → generated content → existing UI` |
@@ -524,7 +530,7 @@ Two series, deliberately separated:
 | **Status** | ✅ APPROVED |
 | **Date** | 2026-10-08 |
 | **Decision** | `backend/.env.example` is rewritten to match the approved architecture: **Vercel / Railway / Neon / Cloudinary**. It carries **names and safe placeholders only**, grouped and labelled by class: public frontend variables · backend secrets · database URLs · Cloudinary · auth and encryption · email and alerting · deployment · optional |
-| **Removed — must not return** | `STORAGE_PROVIDER=r2` and the six R2 variables (superseded by **D-018**) · `CONTACT_TO_EMAIL`, `CONTACT_TO_EMAIL_CHIKKADPALLY`, `CONTACT_TO_EMAIL_BOWENPALLY`, `CAREERS_TO_EMAIL` (**forbidden by D-020** — notification destinations are `branches.notify_email`, `site_settings.default_notify_email` and `site_settings.careers_notify_email`, **row values, never deployment config**) · `REVALIDATE_URL`, `REVALIDATE_SECRET` (removed by **D-016**) · `ANALYTICS_MEASUREMENT_ID` (it is `site_settings.analytics_measurement_id`) · the header claiming the architecture is unapproved (C-9 closed by D-002) |
+| **Removed — must not return** | `STORAGE_PROVIDER=r2` and the six R2 variables (superseded by **D-018**) · `CONTACT_TO_EMAIL`, `CONTACT_TO_EMAIL_CHIKKADPALLY`, `CONTACT_TO_EMAIL_BOWENPALLY`, `CAREERS_TO_EMAIL` (**forbidden by D-020** — notification destinations are `branches.notify_email`, `site_settings.default_notify_email` and `site_settings.careers_notify_email`, **row values, never deployment config**) · ~~`REVALIDATE_URL`, `REVALIDATE_SECRET` (removed by **D-016**)~~ → ⚠️ **re-permitted by [D-043](#d-043--revalidate_secret-is-permitted-again-amends-d-034)**, because the D-016 premise behind the ban is itself superseded by D-042 · `ANALYTICS_MEASUREMENT_ID` (it is `site_settings.analytics_measurement_id`) · the header claiming the architecture is unapproved (C-9 closed by D-002) |
 | **Added** | `DATABASE_URL_UNPOOLED` (**D-017** requires two connection strings) · `CLOUDINARY_CLOUD_NAME`/`API_KEY`/`API_SECRET` (**D-018**) · `VERCEL_DEPLOY_HOOK_URL` (**D-016**) · `FIELD_ENCRYPTION_KEYS` + `FIELD_ENCRYPTION_KEY_ACTIVE` (**D-035**) · `ALERT_TO_EMAIL` · `BACKEND_API_KEY` |
 | **Why it mattered** | `CLAUDE.md` §7 makes this file the env source of truth. As written it actively instructed an implementer to provision Cloudflare R2, reintroduce the exact variables D-020 forbids, build a revalidation webhook D-016 deleted, and run migrations through the pooled endpoint |
 | **Constraint** | **No credential, key or real secret value is invented.** Placeholders only |
@@ -1073,6 +1079,49 @@ changes.
 - Production Neon still holds the 18-row shape. Reconciliation is **migration 014**, idempotent and
   content-preserving — see `docs/PRODUCTION-RECONCILIATION.md`
 - `content_blocks` stays **41**; D-037's slot count is untouched
+
+---
+
+## D-042 · Runtime content fetching with tag-based on-demand revalidation *(SUPERSEDES D-016)*
+
+| | |
+|---|---|
+| **Status** | ✅ APPROVED |
+| **Date** | 2026-10-10 |
+| **Decision** | The frontend **fetches content from the backend at request time** through Next's Data Cache, cached indefinitely and keyed by **cache tags**. A content mutation calls `POST /api/revalidate` on the frontend, which calls `revalidateTag` for the affected collections. **A CMS edit no longer causes a Vercel deployment.** |
+| **Flow** | `Admin changes content → Neon → backend revalidates the affected tags → Next drops those cache entries → next request re-renders that route from the API → CDN serves the new HTML` |
+| **Owner instruction** | Requested explicitly on 2026-10-10: *"I want the admin panel to control published website content without requiring a fresh frontend deployment for every edit."* That outranks D-016 per the document hierarchy (CLAUDE.md §12, rank 1) |
+| **Why D-016 is superseded** | D-016 traded update latency for zero component churn, and chose correctly **given what it knew**. Two things changed. (1) **Operational**: the single deploy-hook trigger is a single point of silent failure, and it failed — `VERCEL_DEPLOY_HOOK_URL` was unset in production and 13 content mutations published nothing while the admin reported success each time. (2) **Factual**: D-016's reason cites *"7 client components import content data directly"*. Re-measured on 2026-10-10, it is **6** that import collection or site data (`Header`, `Preloader`, `fields`, `AppointmentForm`, `CareerForm`, `JobOpenings`); `ContactForm` and `OpenStatus` no longer do, and `Accordion`, `PostBlocks` and `VideoCard` import **types or pure helpers only**, which cost nothing to migrate. The prop-threading bill is materially smaller than the figure the decision was based on |
+| **Rendering** | Routes stay **prerendered**. `fetch` uses `next: { tags, revalidate: false }`, so the result is cached until a tag is invalidated — not re-fetched per request. Performance, SEO and structured data are unchanged; this is **not** a move to per-request SSR |
+| **Consequences** | 1. A frontend **`/api/revalidate`** route now exists — reversing D-016's consequence 1. 2. On-demand ISR replaces pure SSG — reversing consequence 2. 3. 🔴 **I-9 is reopened**: the site now depends on the backend being reachable at build and at regeneration time. Mitigated by caching indefinitely (a backend outage serves the last good cached render) and by failing loudly rather than falling back to stale committed snapshots — a silent stale fallback is the precise failure this project has already been burned by. 4. Content goes live in **seconds**, not minutes |
+| **Deploy hook** | **Retained, narrowed.** It is no longer the content path. See D-042a below for the cases that still require a real build |
+| **Guard rail** | D-010 still governs: **no visual change.** Prop threading changes component *signatures*, never rendered output. 🔴 D-030 is unaffected and must stay unaffected — `window.open` in `AppointmentForm` and `ContactForm` stays synchronous, and data arriving as resolved props rather than a module import makes that *easier*, never harder. No `await` may be introduced before either call |
+
+### D-042a · What still requires a real deployment
+
+Content that is **not** fetched at runtime, and therefore still needs a build:
+
+| Surface | Why a build is still required |
+|---|---|
+| `src/lib/site.ts` → `nav` | **Code-owned** navigation (D-026). Not CMS content; re-emitted verbatim |
+| Code-owned chrome | `mailtoSubject` (D-037), `youtubeThumb`/`youtubeWatch`, `serviceHeroAlt`, derived helpers (R-g) |
+| `next.config.ts` `remotePatterns` | A new media host is a code change (hard constraint 5) |
+| Favicon / design tokens / component layout | Deliberately not editable (CLAUDE.md §9) |
+
+Everything an administrator can edit in the admin panel is revalidated, not deployed.
+
+---
+
+## D-043 · `REVALIDATE_SECRET` is permitted again *(amends D-034)*
+
+| | |
+|---|---|
+| **Status** | ✅ APPROVED |
+| **Date** | 2026-10-10 |
+| **Decision** | `REVALIDATE_SECRET` and `REVALIDATE_URL` are removed from `FORBIDDEN_ENV_VARS`. Setting them is no longer a boot failure |
+| **Reason** | D-034 banned them *because* D-016 had ruled out revalidation — the ban encoded that consequence, not an independent judgement. D-042 reverses the premise, so the ban has to go with it. Keeping it would make the approved architecture unbootable |
+| **Scope** | Only these two names. Every other forbidden variable stays forbidden — the mail group (D-038), the `STORAGE_*` group, `CONTACT_TO_EMAIL*`, `NEXT_PUBLIC_API_URL` and singular `FIELD_ENCRYPTION_KEY` are untouched |
+| **Security** | `REVALIDATE_SECRET` is a **capability**: it authorises cache invalidation on the live site. Server-only, never `NEXT_PUBLIC_*`, never logged, compared with a timing-safe equality check, and scoped per environment so a staging backend cannot invalidate production |
 
 ---
 

@@ -30,6 +30,9 @@ export type AuditAction =
   | "resume_download"
   | "view_message"
   | "deploy_hook"
+  // D-042 — a publish is now a cache invalidation. Added to the DB CHECK
+  // constraint by migration 016; without that an audit write would violate it.
+  | "revalidate"
   | "seed"
   | "purge";
 

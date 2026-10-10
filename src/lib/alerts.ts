@@ -24,6 +24,7 @@ import { logger } from "./logger";
 export type AlertKind =
   | "encryption_failed"
   | "deploy_hook_failed"
+  | "revalidate_failed"
   | "resume_verification_failed"
   | "db_unavailable";
 

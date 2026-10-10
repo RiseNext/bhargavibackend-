@@ -24,6 +24,7 @@ import { audit } from "../audit";
 import { requireAdmin, requireAdminMutation } from "../auth/guard";
 import { query, queryOne, transaction } from "../db";
 import { queueDeployHook } from "../deploy-hook";
+import { revalidateForReasonDetached } from "../revalidate";
 import { invalidJson, notFound, unprocessable } from "../errors";
 import { CACHE_NO_STORE, clientIp, handle, items, readJsonBody, respond } from "../http";
 import { plainText, sanitiseHtml } from "../sanitize";
@@ -309,6 +310,9 @@ export const createBlock = (request: Request): Promise<Response> =>
       });
 
       queueDeployHook("posts:blocks:create");
+      // D-042: publish by cache invalidation. Runs ALONGSIDE the hook
+      // until every consumer reads content at runtime.
+      revalidateForReasonDetached("posts:blocks:create");
 
       return respond(
         // Telling the author what was removed beats silently editing their work.
@@ -382,6 +386,9 @@ export const updateBlock = (request: Request): Promise<Response> =>
       });
 
       queueDeployHook("posts:blocks:update");
+      // D-042: publish by cache invalidation. Runs ALONGSIDE the hook
+      // until every consumer reads content at runtime.
+      revalidateForReasonDetached("posts:blocks:update");
 
       return respond(
         { ...row, ...(removed.length > 0 ? { sanitiserRemoved: removed } : {}) },
@@ -433,6 +440,9 @@ export const deleteBlock = (request: Request): Promise<Response> =>
       });
 
       queueDeployHook("posts:blocks:delete");
+      // D-042: publish by cache invalidation. Runs ALONGSIDE the hook
+      // until every consumer reads content at runtime.
+      revalidateForReasonDetached("posts:blocks:delete");
       return respond({ ok: true }, { admin: true, cache: CACHE_NO_STORE });
     },
     { admin: true },
@@ -488,6 +498,9 @@ export const reorderBlocks = (request: Request): Promise<Response> =>
       });
 
       queueDeployHook("posts:blocks:reorder");
+      // D-042: publish by cache invalidation. Runs ALONGSIDE the hook
+      // until every consumer reads content at runtime.
+      revalidateForReasonDetached("posts:blocks:reorder");
       return respond({ ok: true }, { admin: true, cache: CACHE_NO_STORE });
     },
     { admin: true },

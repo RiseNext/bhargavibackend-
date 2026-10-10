@@ -98,12 +98,20 @@ describe("🔴 D-020 · the clinic's address is never a constant in business log
 // ---------------------------------------------------------------------------
 
 describe("🔴 D-034 · forbidden env vars are absent from source and template", () => {
+  /*
+   * ⚠ REVALIDATE_URL / REVALIDATE_SECRET were here and were REMOVED by D-043.
+   *
+   * D-034 forbade them only because D-016 had ruled out revalidation — the ban
+   * encoded that consequence, not an independent judgement. D-042 reverses the
+   * premise, so the ban had to go with it; leaving it would make the approved
+   * architecture unbootable. Every other forbidden group is untouched, and
+   * `REVALIDATE_SECRET`'s own security properties are asserted in
+   * tests/revalidation-contract.test.ts instead.
+   */
   const forbidden = [
     "CONTACT_TO_EMAIL",
     "CAREERS_TO_EMAIL",
     "STORAGE_PROVIDER",
-    "REVALIDATE_URL",
-    "REVALIDATE_SECRET",
     "NEXT_PUBLIC_API_URL",
   ];
 
@@ -133,27 +141,56 @@ describe("🔴 D-034 · forbidden env vars are absent from source and template",
 // D-016 — no ISR, no revalidation endpoint
 // ---------------------------------------------------------------------------
 
-describe("🔴 D-016 · build-time generation, not runtime revalidation", () => {
-  it("there is no /api/revalidate route", () => {
-    expect(existsSync(resolve(ROOT, "src/app/api/revalidate"))).toBe(false);
+/*
+ * 🔴 WAS "D-016 · build-time generation, not runtime revalidation".
+ *
+ * Those four assertions enforced the OLD architecture, and they did their job —
+ * they are why this migration could not be done by accident. D-042 supersedes
+ * D-016, so the two that asserted the ABSENCE of revalidation are inverted
+ * below rather than deleted: the same properties are still pinned, in the
+ * direction the approved architecture now points.
+ *
+ * The deploy hook is deliberately still asserted. D-042a keeps it for the
+ * surfaces that genuinely need a build (code-owned nav, chrome, remotePatterns),
+ * and the safe-migration mandate keeps it running alongside revalidation until
+ * every consumer reads content at runtime.
+ */
+describe("🔴 D-042 · runtime fetching with tag-based revalidation", () => {
+  it("the frontend exposes an /api/revalidate route", () => {
+    // Inverted from D-016's "there is no /api/revalidate route".
+    const route = resolve(ROOT, "..", "frontend", "src/app/api/revalidate/route.ts");
+    expect(existsSync(route)).toBe(true);
   });
 
-  it("no source file calls revalidatePath or revalidateTag", () => {
-    const offenders = srcText
-      .filter(({ text }) => /revalidatePath|revalidateTag/.test(text))
-      .map(({ file }) => file);
-    expect(offenders).toEqual([]);
+  it("the backend has a revalidation client and a tag vocabulary", () => {
+    const mod = read("src/lib/revalidate.ts");
+    expect(mod).toContain("REVALIDATE_TAGS");
+    expect(mod).toContain("/api/revalidate");
   });
 
-  it("content mutations queue a deploy hook instead", () => {
+  it("🔴 every content mutation path revalidates, not only the five in crud.ts", () => {
+    for (const file of [
+      "src/lib/admin/crud.ts",
+      "src/lib/admin/branches.ts",
+      "src/lib/admin/page-copy.ts",
+      "src/lib/admin/blog-blocks.ts",
+      "src/app/api/admin/site-settings/route.ts",
+    ]) {
+      expect(read(file), `${file} must publish its change`).toContain(
+        "revalidateForReasonDetached",
+      );
+    }
+  });
+
+  it("the deploy hook is retained for the D-042a build-only surfaces", () => {
     expect(read("src/lib/admin/crud.ts")).toContain("queueDeployHook");
     expect(read("src/lib/deploy-hook.ts")).toContain("VERCEL_DEPLOY_HOOK_URL");
   });
 
-  it("the deploy-hook URL is never logged — it is a capability", () => {
-    const hook = read("src/lib/deploy-hook.ts");
-    // Risk 16: anyone holding the URL can trigger a production build.
-    expect(hook).not.toMatch(/logger\(\)\.[a-z]+\([^)]*url/i);
+  it("neither capability is ever logged — both can act on production", () => {
+    // Risk 16 for the hook URL; the same reasoning for the revalidate secret.
+    expect(read("src/lib/deploy-hook.ts")).not.toMatch(/logger\(\)\.[a-z]+\([^)]*url/i);
+    expect(read("src/lib/revalidate.ts")).not.toMatch(/logger\(\)\.[a-z]+\([^)]*secret/i);
   });
 });
 
