@@ -1099,16 +1099,66 @@ changes.
 
 ### D-042a · What still requires a real deployment
 
-Content that is **not** fetched at runtime, and therefore still needs a build:
+**Never CMS content — a build is correct for these:**
 
-| Surface | Why a build is still required |
+| Surface | Why |
 |---|---|
-| `src/lib/site.ts` → `nav` | **Code-owned** navigation (D-026). Not CMS content; re-emitted verbatim |
+| `src/lib/site.ts` → `nav` | **Code-owned** navigation (D-026). Re-emitted verbatim, deliberately not editable |
 | Code-owned chrome | `mailtoSubject` (D-037), `youtubeThumb`/`youtubeWatch`, `serviceHeroAlt`, derived helpers (R-g) |
 | `next.config.ts` `remotePatterns` | A new media host is a code change (hard constraint 5) |
 | Favicon / design tokens / component layout | Deliberately not editable (CLAUDE.md §9) |
 
-Everything an administrator can edit in the admin panel is revalidated, not deployed.
+### D-042b · Migration tranches, with the measured cost of each
+
+Scope measured on 2026-10-10 rather than estimated, because the estimate is what
+made D-016 choose wrongly. Each tranche ships only after the previous one passes
+live acceptance tests.
+
+**Tranche 1 — collections (9 sections).** Consumed as arrays in page bodies and
+four client components with small prop surfaces. This is every section an
+administrator edits day to day, and every section whose failure was actually
+observed in production:
+
+> FAQs · testimonials · services · jobs · videos · gallery · statistics ·
+> `content_lists` (about story, achievements, philosophy, why-choose-us,
+> process) · blog posts
+
+**Tranche 2 — page copy and per-page SEO.** Deferred on measurement, not
+preference:
+
+- **141 `copy.*` call sites across 13 files**, every one synchronous today.
+- **8 × `export const metadata = metadataFor(…)`** — evaluated at *module scope*,
+  so each must become `export async function generateMetadata()`.
+
+A 149-site edit landing in the same change as tranche 1 would make the
+HTML-equivalence diff that protects D-010 unreadable, and an unreadable diff is
+how a visual regression ships.
+
+**Tranche 3 — site settings: branches, phones, opening hours, JSON-LD,
+`OpenStatus`.** 🔴 The hardest, and the reason it is last:
+
+- `lib/hours.ts` derives **module-level constants** (`openWindows`,
+  `earliestOpening`, `hoursShort`, `openingHoursSpecification`) from a statically
+  imported `hoursStructured`. Module constants cannot be `await`ed, so all four
+  become functions and all three consumers change — including the **root layout's
+  `MedicalClinic` JSON-LD**, which renders on every page.
+- `OpenStatus` is a **client** component reading two of those constants. It must
+  receive them as props. ⚠ CLAUDE.md §13 still claims *"`OpenStatus` is not one
+  of them (it holds its own `WINDOWS`)"* — that is **stale**; it was refactored to
+  read `lib/hours.ts` and is now a genuine consumer.
+- The generator's **D-028 dual-shape transform** (`toDisplayHours` +
+  `toStructuredExport`, ~200 lines of `hours.mjs`) has no TypeScript equivalent in
+  `src/`, so it must be ported and proved equivalent — `site.hours` keeps its
+  `{days, time}` display shape for three live consumers, one of which reads
+  `hours[0].days` (hard constraint 6c).
+- 🔴 D-013/D-029/D-036 orderings must survive: `phones[0]` is Bowenpally and
+  `branches[0]` is Chikkadpally, with **8 `phones[0]` occurrences across 5
+  surfaces** and 5 more order-sensitive `.map`s. The API already applies both
+  orderings and the reader must not re-sort.
+
+Until tranche 3 ships, **editing a branch, phone number, address or opening hours
+still requires a deployment.** The deploy hook is retained for exactly that, and
+is narrowed tranche by tranche rather than removed up front.
 
 ---
 
