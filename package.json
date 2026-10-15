@@ -36,7 +36,9 @@
     "media:live-test": "tsx scripts/media-live-test.mjs",
     "e21:mutation": "node scripts/e21-mutation-test.mjs",
     "e21:equivalence": "node scripts/e21-equivalence.mjs",
-    "hours:consistency": "node scripts/hours-consistency-test.mjs"
+    "hours:consistency": "node scripts/hours-consistency-test.mjs",
+    "audit:fields": "node scripts/audit-field-consumers.mjs",
+    "verify:acceptance": "node scripts/verify-acceptance.mjs"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.0.2",

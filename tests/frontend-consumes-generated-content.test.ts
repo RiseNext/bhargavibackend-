@@ -207,6 +207,50 @@ describeIfFrontend("the frontend consumes generated content, not its own copy", 
     expect(source).not.toMatch(/import\s*\{[^}]*\bphilosophy\b[^}]*\}\s*from\s*"@\/content\/site-content"/);
   });
 
+  /**
+   * 🔴 THE FOUNDER'S QUALIFICATIONS HAD NO CONSUMER AT ALL.
+   *
+   * Admin-editable, validated, stored, served by the API and emitted into
+   * `site.founder.qualifications` — and the only reference anywhere in the
+   * frontend was inside `schema.ts`'s `person()` helper, which NOTHING calls.
+   * An administrator could correct a clinician's credentials and no visitor
+   * would ever see the change. For a medical practice that is the single worst
+   * field to drop silently.
+   *
+   * ⚠ Note what this means for the audit that found it: the field had ONE
+   * reference, so a consumer COUNT looked healthy. Orphan detection has to
+   * distinguish live code from dead code, which is why
+   * `scripts/audit-field-consumers.mjs` prints the files for low counts
+   * instead of just the number.
+   *
+   * Rendered-HTML proof lives in the frontend's `e2e-revalidation` suite; these
+   * are the structural guards that fail fast without a build.
+   */
+  it("🔴 the About page renders founder.qualifications", () => {
+    const source = readFileSync(resolve(SRC, "app", "about", "page.tsx"), "utf8");
+    expect(source).toContain("site.founder.qualifications");
+    // Not merely referenced — rendered. A reference inside a dead helper is how
+    // this field hid for as long as it did.
+    expect(source).toMatch(/\{site\.founder\.qualifications\}/);
+  });
+
+  it("🔴 qualifications are hasCredential, and do NOT overwrite description", () => {
+    const source = readFileSync(resolve(SRC, "app", "about", "page.tsx"), "utf8");
+    expect(source).toContain("EducationalOccupationalCredential");
+    expect(source).toContain("hasCredential");
+    // `description` on this page is the founder's story paragraph. The orphaned
+    // `person()` helper puts qualifications THERE, conflating credentials with a
+    // biography; both belong, in their own properties.
+    expect(source).toMatch(/description: aboutStory\[0\]/);
+  });
+
+  it("the About heading derives the founder's name rather than hardcoding it", () => {
+    const source = readFileSync(resolve(SRC, "app", "about", "page.tsx"), "utf8");
+    expect(source).toContain("site.founder.name.split(");
+    // The two fragments that used to be literals in the heading.
+    expect(source).not.toMatch(/<span className="italic">Anjana<\/span>/);
+  });
+
   it("🔴 the hero resolves its statistics from the CMS using D-023's rule", () => {
     const source = readFileSync(resolve(SRC, "components", "sections", "Hero.tsx"), "utf8");
 
