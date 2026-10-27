@@ -114,5 +114,21 @@ jobs:
       - name: Test
         run: npm test
 
+      # 🔴 THE ADMIN SCREENS, RENDERED.
+      #
+      # Its own step because it boots `next dev` and compiles every admin route
+      # on demand — ~400s cold, against ~3 minutes for the whole fast suite. It
+      # was in `npm test` for one commit and pushed that run past ten minutes,
+      # where it began failing on compile timeouts instead of on defects.
+      #
+      # It is NOT optional. It is the only check that renders an admin SCREEN
+      # with a session, which is the exact gap that let
+      # "Attempted to call serviceImageOps() from the server but
+      # serviceImageOps is on the client" reach production: `tsc`, `eslint` and
+      # `next build` all passed, and the service LIST page loaded — only
+      # clicking Edit threw.
+      - name: Test admin screens render
+        run: npm run test:screens
+
       - name: Production build
         run: npm run build

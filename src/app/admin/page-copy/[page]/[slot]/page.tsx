@@ -19,8 +19,12 @@ import { notFound } from "next/navigation";
 import { requireAdminPage } from "@/lib/auth/guard";
 import { query, queryOne } from "@/lib/db";
 import { allowedExtraKeys } from "@/lib/content/extra-allowlist";
+// 🔴 TYPES ONLY besides the component. Calling a function exported from a
+// `"use client"` module is what broke the service editor in production; this
+// route had the identical defect and would have thrown the same way the moment
+// anyone opened a slot with images — the homepage hero included.
 import ImageCollectionEditor, {
-  blockItemOps,
+  type CollectionTarget,
   type SlideRow,
 } from "../../../_components/ImageCollectionEditor";
 import SlotForm, { type SlotRow } from "./SlotForm";
@@ -158,7 +162,9 @@ export default async function SlotEditPage({
         <ImageCollectionEditor
           key={group.key}
           rows={group.rows}
-          ops={blockItemOps(row.id, group.key)}
+          target={
+            { kind: "blockItem", blockId: row.id, groupKey: group.key } satisfies CollectionTarget
+          }
           heading={
             group.rows.length > 1 ? `Images — ${group.key}` : `Image — ${group.key}`
           }

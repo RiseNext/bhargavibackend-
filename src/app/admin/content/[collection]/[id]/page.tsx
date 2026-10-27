@@ -11,8 +11,14 @@ import { requireAdminPage } from "@/lib/auth/guard";
 import { query, queryOne } from "@/lib/db";
 import { collectionUi } from "@/lib/admin/ui-schema";
 import RecordForm, { type DynamicOptions } from "../../../_components/RecordForm";
+// 🔴 TYPES ONLY from this module besides the component itself. It is
+// `"use client"`, so importing a FUNCTION here and calling it is the regression
+// that threw on every service edit in production:
+//   "Attempted to call serviceImageOps() from the server but serviceImageOps
+//    is on the client."
+// A type import is erased at compile time and crosses nothing.
 import ImageCollectionEditor, {
-  serviceImageOps,
+  type CollectionTarget,
   type SlideRow,
 } from "../../../_components/ImageCollectionEditor";
 
@@ -81,7 +87,11 @@ export default async function RecordPage({
       />
 
       {slides !== undefined && (
-        <ImageCollectionEditor rows={slides} ops={serviceImageOps(id)} />
+        <ImageCollectionEditor
+          rows={slides}
+          // Plain data, which is all a Server Component may hand across.
+          target={{ kind: "service", serviceId: id } satisfies CollectionTarget}
+        />
       )}
 
       {collection === "posts" && !isNew && (

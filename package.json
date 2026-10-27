@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:screens": "ADMIN_SCREEN_TESTS=1 vitest run tests/admin-screens-render.test.ts",
     "migrate": "tsx scripts/migrate.ts",
     "migrate:status": "tsx scripts/migrate.ts --status",
     "seed": "tsx scripts/seed.ts",

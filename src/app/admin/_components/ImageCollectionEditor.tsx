@@ -42,15 +42,41 @@ export interface SlideRow {
   secureUrl: string | null;
 }
 
-/** One HTTP call, described by whichever collection is being edited. */
-export interface CollectionRequest {
+/**
+ * 🔴 WHICH COLLECTION THIS EDITOR IS POINTED AT — PLAIN DATA, NOTHING ELSE.
+ *
+ * This is the prop that crosses the server/client boundary, so it must be
+ * serializable. It identifies the collection; the client side turns it into
+ * requests.
+ *
+ * ⚠ THE REGRESSION THIS SHAPE EXISTS TO PREVENT. The first version of the
+ * adapter exported `serviceImageOps()` / `blockItemOps()` from this module and
+ * had the two Server Components CALL them to build an `ops` prop. This module
+ * is `"use client"`, so production threw on every service edit:
+ *
+ *     Error: Attempted to call serviceImageOps() from the server but
+ *     serviceImageOps is on the client. It's not possible to invoke a client
+ *     function from the server; it can only be rendered as a Component or
+ *     passed to props of a Client Component.
+ *
+ * Moving the factories to a server-safe module would NOT have fixed it: `ops`
+ * is an object of FUNCTIONS, and functions cannot be passed to a Client
+ * Component either. Both halves of the mistake disappear once only data
+ * crosses — which is the rule, not a workaround for it.
+ */
+export type CollectionTarget =
+  | { kind: "service"; serviceId: string }
+  | { kind: "blockItem"; blockId: string; groupKey: string };
+
+/** One HTTP call, built on the client from a `CollectionTarget`. */
+interface CollectionRequest {
   url: string;
   method: "POST" | "PATCH" | "PUT" | "DELETE";
   body?: unknown;
 }
 
 /**
- * The four operations a collection supports, supplied by the caller.
+ * The four operations a collection supports.
  *
  * 🔴 WHY AN ADAPTER RATHER THAN A HARDCODED PATH. This screen was built for
  * `service_images` and hardcoded `/api/admin/services/{id}/images`. The home
@@ -64,8 +90,11 @@ export interface CollectionRequest {
  * screens to keep correct, and the upload flow, the reorder semantics, the
  * one-main-image rule and the "the file stays in the library" wording are
  * identical for both. Only the four requests differ.
+ *
+ * ⚠ Deliberately NOT exported, and built only inside this client module. An
+ * exported factory is exactly what the server reached for last time.
  */
-export interface CollectionOps {
+interface CollectionOps {
   create: (mediaId: string, alt: string) => CollectionRequest;
   setMain: (row: SlideRow) => CollectionRequest;
   remove: (row: SlideRow) => CollectionRequest;
@@ -73,7 +102,7 @@ export interface CollectionOps {
 }
 
 /** Endpoints and bodies for one service's `service_images` collection. */
-export function serviceImageOps(serviceId: string): CollectionOps {
+function serviceImageOps(serviceId: string): CollectionOps {
   const base = `/api/admin/services/${serviceId}/images`;
   return {
     create: (mediaId, alt) => ({ url: base, method: "POST", body: { mediaId, alt } }),
@@ -91,7 +120,7 @@ export function serviceImageOps(serviceId: string): CollectionOps {
  * the main image therefore has to resend `mediaId` and `alt`; sending only
  * `isDefault` would blank the row's media and fail validation.
  */
-export function blockItemOps(blockId: string, groupKey: string): CollectionOps {
+function blockItemOps(blockId: string, groupKey: string): CollectionOps {
   const base = "/api/admin/content-block-items";
   return {
     create: (mediaId, alt) => ({
@@ -116,22 +145,30 @@ export function blockItemOps(blockId: string, groupKey: string): CollectionOps {
   };
 }
 
+/** Resolves the target the server named into the requests to send. */
+function opsFor(target: CollectionTarget): CollectionOps {
+  return target.kind === "service"
+    ? serviceImageOps(target.serviceId)
+    : blockItemOps(target.blockId, target.groupKey);
+}
+
 export default function ImageCollectionEditor({
   rows,
-  ops,
+  target,
   heading = "Slider images",
   description,
   emptyHint = "No slider images yet. Add one below.",
   altPlaceholder = "e.g. Acupressure applied to a patient's shoulder",
 }: {
   rows: SlideRow[];
-  ops: CollectionOps;
+  target: CollectionTarget;
   heading?: string;
   description?: React.ReactNode;
   emptyHint?: string;
   altPlaceholder?: string;
 }) {
   const router = useRouter();
+  const ops = opsFor(target);
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | undefined>();

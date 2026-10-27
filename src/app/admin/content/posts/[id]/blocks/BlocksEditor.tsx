@@ -23,57 +23,16 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import MediaPicker from "@/app/admin/_components/MediaPicker";
+// A neutral module with no `"use client"`, so BOTH this component and the
+// Server Component that renders it can use the mapping. The client needs the
+// function itself for `refresh()`, which re-reads the list after every write.
+import { normaliseBlockRow, type BlockRow, type BlockType } from "./block-row";
 
 const CSRF_COOKIE = "bhw_csrf";
 
 function csrfToken(): string {
   const match = new RegExp(`(?:^|; )${CSRF_COOKIE}=([^;]*)`).exec(document.cookie);
   return match?.[1] ? decodeURIComponent(match[1]) : "";
-}
-
-export type BlockType = "text" | "heading" | "image" | "youtube" | "quote" | "list";
-
-export interface BlockRow {
-  id: string;
-  type: BlockType;
-  sortOrder: number;
-  textHtml: string | null;
-  headingLevel: number | null;
-  headingText: string | null;
-  mediaId: string | null;
-  imageAlt: string | null;
-  imageCaption: string | null;
-  youtubeId: string | null;
-  youtubeTitle: string | null;
-  listItems: string[] | null;
-}
-
-/**
- * snake_case over the wire → camelCase in the component.
- *
- * The admin read returns database column names (`text_html`, `heading_level`),
- * which is the boundary convention everywhere else too. Converting in one place
- * keeps the rest of this file speaking one language.
- */
-export function normaliseBlockRow(row: unknown): BlockRow {
-  const r = row as Record<string, unknown>;
-  const str = (v: unknown): string | null => (typeof v === "string" ? v : null);
-  const num = (v: unknown): number | null => (typeof v === "number" ? v : null);
-
-  return {
-    id: String(r.id ?? ""),
-    type: String(r.type ?? "text") as BlockType,
-    sortOrder: num(r.sort_order) ?? 0,
-    textHtml: str(r.text_html),
-    headingLevel: num(r.heading_level),
-    headingText: str(r.heading_text),
-    mediaId: str(r.media_id),
-    imageAlt: str(r.image_alt),
-    imageCaption: str(r.image_caption),
-    youtubeId: str(r.youtube_id),
-    youtubeTitle: str(r.youtube_title),
-    listItems: Array.isArray(r.list_items) ? (r.list_items as string[]) : null,
-  };
 }
 
 const TYPE_LABELS: Record<BlockType, string> = {

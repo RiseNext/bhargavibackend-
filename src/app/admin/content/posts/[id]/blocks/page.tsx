@@ -15,7 +15,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireAdminPage } from "@/lib/auth/guard";
 import { query, queryOne } from "@/lib/db";
-import BlocksEditor, { normaliseBlockRow } from "./BlocksEditor";
+import BlocksEditor from "./BlocksEditor";
+// 🔴 Server-safe module, NOT the client component. Calling a function exported
+// from a `"use client"` module on the server is the error that broke the
+// service editor in production; this call site had the same latent defect.
+import { normaliseBlockRow } from "./block-row";
 
 export const dynamic = "force-dynamic";
 
