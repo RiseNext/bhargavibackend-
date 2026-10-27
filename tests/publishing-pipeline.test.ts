@@ -32,8 +32,8 @@
  * where a correct component can be wired to nothing.
  */
 
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { readFileSync, readdirSync } from "node:fs";
+import { resolve, sep } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { publishingState } from "@/lib/publishing-state";
 
@@ -389,8 +389,9 @@ describe("admin responses advertise whether publishing works", () => {
 // ---------------------------------------------------------------------------
 
 describe("SaveNotice — the message must match the mechanism", () => {
+  const root = resolve(import.meta.dirname, "..");
   const SOURCE = readFileSync(
-    resolve(import.meta.dirname, "..", "src", "app", "admin", "_components", "SaveNotice.tsx"),
+    resolve(root, "src", "app", "admin", "_components", "SaveNotice.tsx"),
     "utf8",
   );
 
@@ -414,8 +415,78 @@ describe("SaveNotice — the message must match the mechanism", () => {
     expect(SOURCE).toMatch(/:\s*"deploy-hook"/);
   });
 
+  /*
+   * 🔴 WHICH PATH PUBLISHES WHICH CONTENT — asserted against the frontend.
+   *
+   * D-042's migration is deliberately partial. The nine collections are read at
+   * runtime and publish by tag invalidation in seconds; page copy and per-page
+   * SEO are still BUILD-TIME generated, so only a rebuild publishes them. The
+   * frontend even has `getPageCopy()` and `getPageMeta()` runtime readers —
+   * and NOTHING CALLS THEM.
+   *
+   * That makes `revalidateTag("content-blocks")` a no-op for the live site, so
+   * a save notice promising "a few seconds" after a heading edit is wrong by
+   * about two minutes. An owner who reloads, sees the old heading and concludes
+   * the CMS is broken has been misled just as surely as by the original
+   * "a rebuild has been queued" when none could be.
+   *
+   * If a later tranche wires `getPageCopy()` up, this test fails — which is the
+   * correct moment to change the wording from `rebuild` to `runtime`.
+   */
+  it("🔴 page copy is still build-time, so its screen must promise a rebuild", () => {
+    const frontend = resolve(root, "..", "frontend", "src");
+    const files = (dir: string): string[] =>
+      readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+        e.isDirectory()
+          ? files(resolve(dir, e.name))
+          : /\.tsx?$/.test(e.name)
+            ? [resolve(dir, e.name)]
+            : [],
+      );
+
+    const callers = files(frontend).filter((f) => {
+      if (f.endsWith(`lib${sep}content.ts`)) return false; // where they are defined
+      return /\bgetPageCopy\s*\(|\bgetPageMeta\s*\(/.test(readFileSync(f, "utf8"));
+    });
+
+    expect(
+      callers,
+      "a runtime page-copy reader gained a consumer — page copy now publishes " +
+        "without a rebuild, so SlotForm should say `runtime`, not `rebuild`",
+    ).toEqual([]);
+
+    // And the build-time module is what the pages actually import.
+    const consumers = files(frontend).filter((f) =>
+      /from "@\/content\/page-copy"|from "@\/lib\/copy"/.test(readFileSync(f, "utf8")),
+    );
+    expect(consumers.length).toBeGreaterThan(10);
+
+    const slotForm = readFileSync(
+      resolve(root, "src", "app", "admin", "page-copy", "[page]", "[slot]", "SlotForm.tsx"),
+      "utf8",
+    );
+    expect(slotForm).toContain('publishes="rebuild"');
+  });
+
+  it("the mixed screens say so, because they feed both paths", () => {
+    // Site settings and branches are read at runtime by `getContactDetails`,
+    // `getFounder` and `getStats`, and baked into `src/lib/site.ts` at build
+    // time for brand, canonical URL, WhatsApp and socials.
+    for (const file of [
+      "src/app/admin/settings/SettingsForm.tsx",
+      "src/app/admin/branches/[id]/BranchForm.tsx",
+    ]) {
+      expect(readFileSync(resolve(root, file), "utf8")).toContain('publishes="mixed"');
+    }
+    // The nine runtime collections keep the default wording.
+    const record = readFileSync(
+      resolve(root, "src", "app", "admin", "_components", "RecordForm.tsx"),
+      "utf8",
+    );
+    expect(record).not.toContain("publishes=");
+  });
+
   it("every form that reports a save reads the mechanism, not only the flag", () => {
-    const root = resolve(import.meta.dirname, "..");
     const forms = [
       "src/app/admin/_components/RecordForm.tsx",
       "src/app/admin/branches/[id]/BranchForm.tsx",

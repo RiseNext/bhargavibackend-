@@ -42,15 +42,96 @@ export interface SlideRow {
   secureUrl: string | null;
 }
 
+/** One HTTP call, described by whichever collection is being edited. */
+export interface CollectionRequest {
+  url: string;
+  method: "POST" | "PATCH" | "PUT" | "DELETE";
+  body?: unknown;
+}
+
+/**
+ * The four operations a collection supports, supplied by the caller.
+ *
+ * 🔴 WHY AN ADAPTER RATHER THAN A HARDCODED PATH. This screen was built for
+ * `service_images` and hardcoded `/api/admin/services/{id}/images`. The home
+ * hero's photographs are `content_block_items` rows on the `home.hero` block
+ * (D-027, widened to a collection by D-044), reached through a different
+ * endpoint family with a different body shape — so the admin had no way to
+ * change the homepage image at all, even though the table, the API and
+ * `is_default` all supported it.
+ *
+ * Duplicating this component for the second collection would have meant two
+ * screens to keep correct, and the upload flow, the reorder semantics, the
+ * one-main-image rule and the "the file stays in the library" wording are
+ * identical for both. Only the four requests differ.
+ */
+export interface CollectionOps {
+  create: (mediaId: string, alt: string) => CollectionRequest;
+  setMain: (row: SlideRow) => CollectionRequest;
+  remove: (row: SlideRow) => CollectionRequest;
+  reorder: (ids: readonly string[]) => CollectionRequest;
+}
+
+/** Endpoints and bodies for one service's `service_images` collection. */
+export function serviceImageOps(serviceId: string): CollectionOps {
+  const base = `/api/admin/services/${serviceId}/images`;
+  return {
+    create: (mediaId, alt) => ({ url: base, method: "POST", body: { mediaId, alt } }),
+    setMain: (row) => ({ url: `${base}/${row.id}`, method: "PATCH", body: { isDefault: true } }),
+    remove: (row) => ({ url: `${base}/${row.id}`, method: "DELETE" }),
+    reorder: (ids) => ({ url: `${base}/reorder`, method: "POST", body: { ids } }),
+  };
+}
+
+/**
+ * Endpoints and bodies for one `content_block_items` image group.
+ *
+ * ⚠ `PUT` REPLACES THE ITEM WHOLESALE — which fields are meaningful depends on
+ * `item_type`, so the handler takes the whole item rather than a patch. Setting
+ * the main image therefore has to resend `mediaId` and `alt`; sending only
+ * `isDefault` would blank the row's media and fail validation.
+ */
+export function blockItemOps(blockId: string, groupKey: string): CollectionOps {
+  const base = "/api/admin/content-block-items";
+  return {
+    create: (mediaId, alt) => ({
+      url: base,
+      method: "POST",
+      body: { blockId, groupKey, itemType: "image", mediaId, alt },
+    }),
+    setMain: (row) => ({
+      url: `${base}/${row.id}`,
+      method: "PUT",
+      body: {
+        blockId,
+        groupKey,
+        itemType: "image",
+        mediaId: row.mediaId,
+        alt: row.alt,
+        isDefault: true,
+      },
+    }),
+    remove: (row) => ({ url: `${base}/${row.id}`, method: "DELETE" }),
+    reorder: (ids) => ({ url: `${base}/reorder`, method: "POST", body: { ids } }),
+  };
+}
+
 export default function ImageCollectionEditor({
-  serviceId,
   rows,
+  ops,
+  heading = "Slider images",
+  description,
+  emptyHint = "No slider images yet. Add one below.",
+  altPlaceholder = "e.g. Acupressure applied to a patient's shoulder",
 }: {
-  serviceId: string;
   rows: SlideRow[];
+  ops: CollectionOps;
+  heading?: string;
+  description?: React.ReactNode;
+  emptyHint?: string;
+  altPlaceholder?: string;
 }) {
   const router = useRouter();
-  const base = `/api/admin/services/${serviceId}/images`;
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | undefined>();
@@ -61,12 +142,8 @@ export default function ImageCollectionEditor({
   const [newAlt, setNewAlt] = useState("");
 
   /** One place for the fetch + feedback, so no call site can forget the CSRF header. */
-  async function send(
-    url: string,
-    method: "POST" | "PATCH" | "DELETE",
-    body?: unknown,
-    success?: string,
-  ): Promise<boolean> {
+  async function send(req: CollectionRequest, success?: string): Promise<boolean> {
+    const { url, method, body } = req;
     setBusy(true);
     setError(undefined);
     setNotice(undefined);
@@ -105,7 +182,7 @@ export default function ImageCollectionEditor({
       setError("Choose an image and describe it before adding it.");
       return;
     }
-    const ok = await send(base, "POST", { mediaId: newMediaId, alt: newAlt.trim() }, "Image added.");
+    const ok = await send(ops.create(newMediaId, newAlt.trim()), "Image added.");
     if (ok) {
       setNewMediaId("");
       setNewAlt("");
@@ -123,18 +200,22 @@ export default function ImageCollectionEditor({
     ids[index] = b;
     ids[target] = a;
 
-    await send(`${base}/reorder`, "POST", { ids }, "Order saved.");
+    await send(ops.reorder(ids), "Order saved.");
   }
 
   const main = rows.find((r) => r.isDefault);
 
   return (
     <section style={{ marginTop: 28 }}>
-      <h2 style={{ fontSize: 16, marginBottom: 4 }}>Slider images</h2>
+      <h2 style={{ fontSize: 16, marginBottom: 4 }}>{heading}</h2>
       <p style={{ fontSize: 13, color: "var(--muted)", marginTop: 0 }}>
-        These appear as a slideshow on this service&apos;s page, in the order below. The main
-        image is the one the slideshow opens on. With no images here, the page shows the single{" "}
-        <strong>Image</strong> field above exactly as it does today.
+        {description ?? (
+          <>
+            These appear as a slideshow on this service&apos;s page, in the order below. The main
+            image is the one the slideshow opens on. With no images here, the page shows the
+            single <strong>Image</strong> field above exactly as it does today.
+          </>
+        )}
       </p>
 
       {error !== undefined && (
@@ -150,7 +231,7 @@ export default function ImageCollectionEditor({
 
       {rows.length === 0 ? (
         <p style={{ fontSize: 13, color: "var(--muted)" }}>
-          No slider images yet. Add one below.
+          {emptyHint}
         </p>
       ) : (
         <ol style={{ listStyle: "none", padding: 0, margin: "12px 0" }}>
@@ -226,7 +307,7 @@ export default function ImageCollectionEditor({
               <button
                 type="button"
                 onClick={() =>
-                  void send(`${base}/${row.id}`, "PATCH", { isDefault: true }, "Main image set.")
+                  void send(ops.setMain(row), "Main image set.")
                 }
                 disabled={busy || row.isDefault}
                 style={smallButton}
@@ -238,9 +319,7 @@ export default function ImageCollectionEditor({
                 type="button"
                 onClick={() =>
                   void send(
-                    `${base}/${row.id}`,
-                    "DELETE",
-                    undefined,
+                    ops.remove(row),
                     // Says what removal does and does not do, because "remove"
                     // reasonably reads as "delete the file".
                     "Image removed from this service. The file is still in the library.",
@@ -287,7 +366,7 @@ export default function ImageCollectionEditor({
             disabled={busy}
             maxLength={300}
             onChange={(e) => setNewAlt(e.target.value)}
-            placeholder="e.g. Acupressure applied to a patient's shoulder"
+            placeholder={altPlaceholder}
             style={{
               display: "block",
               width: "100%",

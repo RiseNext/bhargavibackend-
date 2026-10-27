@@ -12,6 +12,7 @@ import { query, queryOne } from "@/lib/db";
 import { collectionUi } from "@/lib/admin/ui-schema";
 import RecordForm, { type DynamicOptions } from "../../../_components/RecordForm";
 import ImageCollectionEditor, {
+  serviceImageOps,
   type SlideRow,
 } from "../../../_components/ImageCollectionEditor";
 
@@ -79,7 +80,9 @@ export default async function RecordPage({
         {...(dynamicOptions ? { dynamicOptions } : {})}
       />
 
-      {slides !== undefined && <ImageCollectionEditor serviceId={id} rows={slides} />}
+      {slides !== undefined && (
+        <ImageCollectionEditor rows={slides} ops={serviceImageOps(id)} />
+      )}
 
       {collection === "posts" && !isNew && (
         <p style={{ marginTop: 24, fontSize: 14 }}>

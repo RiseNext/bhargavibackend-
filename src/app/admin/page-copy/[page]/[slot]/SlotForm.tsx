@@ -236,7 +236,7 @@ export default function SlotForm({
           {error}
         </p>
       )}
-      {state === "saved" && <SaveNotice configured={publishable} mechanism={mechanism} />}
+      {state === "saved" && <SaveNotice configured={publishable} mechanism={mechanism} publishes="rebuild" />}
 
       <button
         type="button"

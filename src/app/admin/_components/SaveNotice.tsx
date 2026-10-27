@@ -64,23 +64,71 @@ export function publishingMechanismFrom(response: Response): SaveMechanism {
     : "deploy-hook";
 }
 
+/**
+ * 🔴 HOW THE EDITED CONTENT ACTUALLY REACHES THE WEBSITE.
+ *
+ * The backend's `X-Publishing-Mechanism` says what the SERVER can do; it cannot
+ * say which path THIS content takes, because that depends on how the frontend
+ * reads it — and D-042's migration is deliberately only partly done:
+ *
+ *   `runtime`  The nine migrated collections (services, testimonials, videos,
+ *              gallery, FAQs, jobs, blog, page lists, statistics) are fetched
+ *              per request through Next's tagged Data Cache, so invalidating
+ *              the tag publishes them in seconds.
+ *   `rebuild`  Page copy and per-page SEO are still BUILD-TIME generated.
+ *              `getPageCopy()` and `getPageMeta()` exist as runtime readers
+ *              and NOTHING CALLS THEM — all sixteen consumers import
+ *              `@/content/page-copy`. Revalidating the `content-blocks` tag is
+ *              therefore a no-op for the live site; only the rebuild publishes
+ *              it. This is why the deploy hook is load-bearing and must stay.
+ *   `mixed`    Site settings and branches feed both: `getContactDetails()`,
+ *              `getFounder()` and `getStats()` read them at runtime, while
+ *              `src/lib/site.ts` bakes brand, canonical URL, WhatsApp and
+ *              socials in at build time.
+ *
+ * Without this distinction the notice told an owner editing a heading that the
+ * site "updates within a few seconds". It does not — it updates on the next
+ * rebuild, about two minutes later. They would reload, see the old heading, and
+ * conclude the CMS was broken. Promising the wrong duration is a smaller lie
+ * than the original "a rebuild has been queued" when none could be, but it is
+ * the same kind, and it trains the same distrust.
+ */
+export type PublishRoute = "runtime" | "rebuild" | "mixed";
+
 export default function SaveNotice({
   configured,
   mechanism = "deploy-hook",
+  publishes,
 }: {
   configured: boolean;
   mechanism?: SaveMechanism;
+  /** Omitted ⇒ describe whatever the server can do, which suits the nine
+   *  runtime collections `RecordForm` edits. */
+  publishes?: PublishRoute;
 }) {
   if (configured) {
     // The fast path publishes by invalidating the website's cache, so there is
     // no build to wait for and saying there is would be wrong.
-    const fast = mechanism === "revalidate" || mechanism === "both";
+    const canRevalidate = mechanism === "revalidate" || mechanism === "both";
+    const canRebuild = mechanism === "deploy-hook" || mechanism === "both";
+
+    let message: string;
+    if (publishes === "rebuild") {
+      message = canRebuild
+        ? "Saved. This section is published by a site rebuild, which has been queued — allow a couple of minutes, then reload the public page."
+        : "Saved to the database. ⚠ This section is published by a site rebuild, and no rebuild can be triggered on this server, so the change will not appear until one runs.";
+    } else if (publishes === "mixed") {
+      message = canRebuild
+        ? "Saved. Contact details, hours and statistics update within a few seconds; branding, links and page metadata follow with the rebuild just queued — allow a couple of minutes."
+        : "Saved and published to the pages that read these values live. ⚠ Branding and page metadata need a site rebuild, which cannot be triggered on this server.";
+    } else {
+      message = canRevalidate
+        ? "Saved and published — the website updates within a few seconds. Reload the public page to see it."
+        : "Saved. A site rebuild has been queued — changes appear in a couple of minutes.";
+    }
+
     return (
-      <p style={{ color: "var(--ok)", fontSize: 13 }}>
-        {fast
-          ? "Saved and published — the website updates within a few seconds. Reload the public page to see it."
-          : "Saved. A site rebuild has been queued — changes appear in a couple of minutes."}
-      </p>
+      <p style={{ color: "var(--ok)", fontSize: 13 }}>{message}</p>
     );
   }
 

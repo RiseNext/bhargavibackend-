@@ -246,7 +246,7 @@ export default function SettingsForm({ row }: { row: Record<string, unknown> }) 
           {error}
         </p>
       )}
-      {state === "saved" && <SaveNotice configured={publishable} mechanism={mechanism} />}
+      {state === "saved" && <SaveNotice configured={publishable} mechanism={mechanism} publishes="mixed" />}
 
       <button
         type="button"
