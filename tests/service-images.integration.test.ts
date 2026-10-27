@@ -34,6 +34,7 @@ import { isDbReachable, seedStageS1, withClient } from "./helpers/db";
 import { closeDb, query, queryOne } from "@/lib/db";
 import { cancelQueuedDeployHook } from "@/lib/deploy-hook";
 import { listServices } from "@/lib/content/public";
+import { mediaReferences } from "@/lib/media";
 
 /** A public image row, shaped exactly as `media/confirm` writes one. */
 async function makeMedia(publicId: string): Promise<string> {
@@ -238,6 +239,32 @@ describeIfDb("service images · D-044 invariants", () => {
     await expect(query("DELETE FROM media WHERE id = $1", [a])).rejects.toThrow(
       /violates foreign key|service_images/i,
     );
+  });
+
+  it("🔴 the media deletion guard REPORTS an asset a slider is using", async () => {
+    // The real protection, and the one this feature originally missed.
+    //
+    // Deleting an asset in the admin panel is a soft delete plus an
+    // irreversible Cloudinary destroy, so `ON DELETE RESTRICT` never fires on
+    // that path — `MEDIA_REFERENCE_SOURCES` is the only thing standing between
+    // an editor and a destroyed asset that a live slider is still showing.
+    // `media-references.test.ts` proves the LIST is exhaustive; this proves the
+    // lookup actually finds a slider.
+    const [service] = await firstTwoServices();
+    if (!service) throw new Error("expected a service");
+
+    const used = await makeMedia("guarded-by-slider");
+    await addSlide(service.id, used, "in a slider", 1, true);
+
+    const refs = await mediaReferences(used);
+    expect(refs.join(" | ")).toMatch(/service slider/i);
+  });
+
+  it("an asset no slider uses is still reported as free", async () => {
+    // The other half: the guard must not become a blanket refusal, or an
+    // editor could never tidy the library.
+    const spare = await makeMedia("unreferenced");
+    expect(await mediaReferences(spare)).toEqual([]);
   });
 
   // -- the public payload --------------------------------------------------

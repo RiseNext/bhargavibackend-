@@ -43,10 +43,17 @@ CREATE TABLE service_images (
   -- only on a genuine hard delete, where leaving orphans would be worse.
   service_id uuid NOT NULL REFERENCES services (id) ON DELETE CASCADE,
 
-  -- 🔴 RESTRICT, matching `gallery_images`. The admin "remove image" action
-  -- deletes THIS row and never the Cloudinary asset; destroying an asset stays
-  -- the separate, reference-checked media action. RESTRICT means that action
-  -- cannot orphan a slide it does not know about.
+  -- RESTRICT, matching `gallery_images`. The admin "remove image" action
+  -- deletes THIS row and never the Cloudinary asset.
+  --
+  -- ⚠ RESTRICT IS NOT THE REAL PROTECTION, and it is worth being precise about
+  -- why. Deleting an asset in the admin panel is a SOFT delete (`media
+  -- .deleted_at`) plus an irreversible Cloudinary destroy, so this FK never
+  -- fires on that path. The only thing that stops an in-use slide's asset
+  -- being destroyed is `MEDIA_REFERENCE_SOURCES` in `src/lib/media/index.ts`,
+  -- where `service_images` is registered — and `tests/media-references.test.ts`
+  -- fails if a future migration adds a media reference without registering it.
+  -- RESTRICT still earns its place as the backstop for a genuine hard delete.
   media_id   uuid NOT NULL REFERENCES media (id) ON DELETE RESTRICT,
 
   -- Per-slide alt text. Required, for the same reason `content_block_items`

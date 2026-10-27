@@ -351,8 +351,12 @@ export const patchServiceImage = (request: Request): Promise<Response> =>
  *
  * The image stays in the media library and in any other service that uses it.
  * Destroying the stored asset is `DELETE /api/admin/media/{id}`, which checks
- * references first — and `service_images.media_id` is `ON DELETE RESTRICT`, so
- * a referenced asset cannot be destroyed out from under a slider either way.
+ * `MEDIA_REFERENCE_SOURCES` first — and `service_images` is registered there,
+ * so an asset a slider still shows reports as in use and is refused.
+ *
+ * ⚠ That registration, NOT the `ON DELETE RESTRICT` on `media_id`, is what
+ * protects the asset. Media deletion is a soft delete plus a Cloudinary
+ * destroy, so the FK never fires on that path.
  */
 export const deleteServiceImage = (request: Request): Promise<Response> =>
   handle(

@@ -193,7 +193,7 @@ export async function softDeleteMedia(id: string): Promise<MediaRow | undefined>
 
 /** Rows that still point at a media asset, so a delete can refuse to orphan one. */
 /**
- * Every column in the schema that references `media(id)` — ALL THIRTEEN.
+ * Every column in the schema that references `media(id)` — ALL FOURTEEN.
  *
  * 🔴 WHY THIS MUST BE EXHAUSTIVE. Deletion here is a SOFT delete plus an
  * IRREVERSIBLE Cloudinary `destroy`. Because the row is never actually deleted,
@@ -216,6 +216,12 @@ const MEDIA_REFERENCE_SOURCES = [
   { label: "services (image)", sql: "SELECT count(*)::text AS n FROM services WHERE image_media_id = $1" },
   { label: "services (social image)", sql: "SELECT count(*)::text AS n FROM services WHERE og_media_id = $1" },
   { label: "gallery", sql: "SELECT count(*)::text AS n FROM gallery_images WHERE media_id = $1" },
+  // 🔴 D-044. `service_images.media_id` is ON DELETE RESTRICT, but that fires
+  // only on a HARD delete — and this path is a soft delete plus an
+  // irreversible Cloudinary destroy, exactly as the note above explains. So
+  // without this entry an editor could destroy an asset a service slider is
+  // still showing, and the slide would render broken on the live site.
+  { label: "service sliders", sql: "SELECT count(*)::text AS n FROM service_images WHERE media_id = $1" },
   { label: "list items (icon)", sql: "SELECT count(*)::text AS n FROM content_list_items WHERE icon_media_id = $1" },
   { label: "page sections", sql: "SELECT count(*)::text AS n FROM content_block_items WHERE media_id = $1" },
   { label: "page metadata (social image)", sql: "SELECT count(*)::text AS n FROM page_meta WHERE og_media_id = $1" },
@@ -242,6 +248,7 @@ export const MEDIA_REFERENCING_COLUMNS: ReadonlyArray<`${string}.${string}`> = [
   "content_list_items.icon_media_id",
   "gallery_images.media_id",
   "page_meta.og_media_id",
+  "service_images.media_id",
   "services.image_media_id",
   "services.og_media_id",
   "site_settings.founder_photo_media_id",
