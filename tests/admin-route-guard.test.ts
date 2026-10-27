@@ -169,6 +169,20 @@ const VERIFIED_MODULE_SPECS: Array<Pick<VerifiedModule, "path" | "handlers">> = 
       reorderBlockItems: true,
     },
   },
+  {
+    // D-044 · service image collections. Bespoke rather than the factory for
+    // two reasons the factory cannot express: every operation is scoped to a
+    // parent `service_id`, and the writes maintain a single-default invariant
+    // across sibling rows.
+    path: "src/lib/admin/service-images.ts",
+    handlers: {
+      listServiceImages: false,
+      createServiceImage: true,
+      patchServiceImage: true,
+      deleteServiceImage: true,
+      reorderServiceImages: true,
+    },
+  },
 ];
 
 const VERIFIED_MODULES: VerifiedModule[] = VERIFIED_MODULE_SPECS.map((m) => {

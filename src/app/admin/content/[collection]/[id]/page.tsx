@@ -11,6 +11,9 @@ import { requireAdminPage } from "@/lib/auth/guard";
 import { query, queryOne } from "@/lib/db";
 import { collectionUi } from "@/lib/admin/ui-schema";
 import RecordForm, { type DynamicOptions } from "../../../_components/RecordForm";
+import ImageCollectionEditor, {
+  type SlideRow,
+} from "../../../_components/ImageCollectionEditor";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +56,12 @@ export default async function RecordPage({
 
   const dynamicOptions = await resolveDynamicOptions(ui.fields);
 
+  // D-044 — this service's slider collection. Loaded here, like the branch
+  // options above, so the list arrives with the first paint instead of the
+  // editor opening on an empty state it then has to replace.
+  const slides =
+    collection === "services" && !isNew ? await loadServiceImages(id) : undefined;
+
   return (
     <>
       <p style={{ fontSize: 13 }}>
@@ -69,6 +78,8 @@ export default async function RecordPage({
         {...(isNew ? {} : { id })}
         {...(dynamicOptions ? { dynamicOptions } : {})}
       />
+
+      {slides !== undefined && <ImageCollectionEditor serviceId={id} rows={slides} />}
 
       {collection === "posts" && !isNew && (
         <p style={{ marginTop: 24, fontSize: 14 }}>
@@ -113,6 +124,41 @@ async function resolveDynamicOptions(
   }
 
   return out;
+}
+
+/**
+ * This service's slides in display order (D-044).
+ *
+ * `secure_url` is joined rather than derived so the editor can preview each
+ * one; a slide whose asset was removed from the library still lists, with a
+ * "no preview" box, because hiding it would make an unremovable row invisible.
+ */
+async function loadServiceImages(serviceId: string): Promise<SlideRow[]> {
+  const rows = await query<{
+    id: string;
+    media_id: string;
+    alt: string;
+    sort_order: number;
+    is_default: boolean;
+    secure_url: string | null;
+  }>(
+    `SELECT si.id::text AS id, si.media_id::text AS media_id, si.alt,
+            si.sort_order, si.is_default, m.secure_url
+       FROM service_images si
+       JOIN media m ON m.id = si.media_id
+      WHERE si.service_id = $1
+      ORDER BY si.sort_order, si.id`,
+    [serviceId],
+  );
+
+  return rows.map((r) => ({
+    id: r.id,
+    mediaId: r.media_id,
+    alt: r.alt,
+    sortOrder: r.sort_order,
+    isDefault: r.is_default,
+    secureUrl: r.secure_url,
+  }));
 }
 
 function displayName(row: Record<string, unknown> | undefined): string {

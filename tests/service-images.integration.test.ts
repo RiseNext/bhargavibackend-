@@ -1,0 +1,295 @@
+/**
+ * Service image collections — D-044's data invariants.
+ *
+ * These are the guarantees the admin screen and the slider both rely on, and
+ * every one of them is enforced by the SCHEMA rather than by handler code, so
+ * they are asserted against a real database:
+ *
+ *   · at most one main image per service
+ *   · zero main images is legal — the slider then opens on the first
+ *   · one service's collection cannot affect another's
+ *   · a Cloudinary asset that a slider still references cannot be destroyed
+ *   · the public payload carries the slides in display order, additively
+ *
+ * ⚠ THIS SUITE GATES ON REACHABILITY, not on `DATABASE_URL` being set.
+ *
+ * `describeDb` checks only whether the variable exists, so with `.env.test`
+ * present but no Postgres listening it RUNS the suite and reports a wall of
+ * ECONNREFUSED failures — which is why ~90 pre-existing integration tests read
+ * as "failed" on a machine with no local database rather than "skipped", and
+ * why the helper's own docstring ("skips the whole suite when no database is
+ * reachable") does not describe what it does.
+ *
+ * That is a pre-existing harness defect in shared code, and fixing it would
+ * change the reported result of every other integration suite — so it is
+ * reported separately rather than changed here. This file calls the helper's
+ * real reachability probe instead, so its own result is an honest BLOCKED.
+ *
+ * It is never pointed at Neon: `tests/setup.ts` refuses a non-localhost
+ * `DATABASE_URL` outright, because the helpers TRUNCATE every table they find.
+ */
+
+import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { isDbReachable, seedStageS1, withClient } from "./helpers/db";
+import { closeDb, query, queryOne } from "@/lib/db";
+import { cancelQueuedDeployHook } from "@/lib/deploy-hook";
+import { listServices } from "@/lib/content/public";
+
+/** A public image row, shaped exactly as `media/confirm` writes one. */
+async function makeMedia(publicId: string): Promise<string> {
+  const row = await queryOne<{ id: string }>(
+    `INSERT INTO media (public_id, resource_type, delivery_type, visibility,
+                        format, bytes, width, height, secure_url, folder)
+     VALUES ($1, 'image', 'upload', 'public', 'webp', 12345, 1600, 1200,
+             $2, 'services')
+     RETURNING id::text AS id`,
+    [publicId, `https://res.cloudinary.com/demo/image/upload/${publicId}.webp`],
+  );
+  if (!row) throw new Error("could not insert test media");
+  return row.id;
+}
+
+async function firstTwoServices(): Promise<Array<{ id: string; slug: string }>> {
+  const rows = await query<{ id: string; slug: string }>(
+    `SELECT id::text AS id, slug FROM services
+      WHERE deleted_at IS NULL ORDER BY sort_order, id LIMIT 2`,
+  );
+  if (rows.length < 2) throw new Error("expected at least two seeded services");
+  return rows;
+}
+
+async function addSlide(
+  serviceId: string,
+  mediaId: string,
+  alt: string,
+  sortOrder: number,
+  isDefault = false,
+): Promise<string> {
+  const row = await queryOne<{ id: string }>(
+    `INSERT INTO service_images (service_id, media_id, alt, sort_order, is_default)
+     VALUES ($1, $2, $3, $4, $5) RETURNING id::text AS id`,
+    [serviceId, mediaId, alt, sortOrder, isDefault],
+  );
+  if (!row) throw new Error("could not insert test slide");
+  return row.id;
+}
+
+/**
+ * Top-level await is fine in a Vitest ESM test file, and the probe is memoised
+ * in the helper, so this costs one connection attempt for the whole file.
+ */
+const describeIfDb = (await isDbReachable()) ? describe : describe.skip;
+
+describeIfDb("service images · D-044 invariants", () => {
+  afterAll(async () => {
+    await closeDb();
+  });
+
+  beforeEach(async () => {
+    await seedStageS1();
+    cancelQueuedDeployHook();
+  });
+
+  // -- the single-default invariant ----------------------------------------
+
+  it("🔴 refuses a second main image for the same service", async () => {
+    const [service] = await firstTwoServices();
+    if (!service) throw new Error("expected a service");
+
+    const a = await makeMedia("slide-a");
+    const b = await makeMedia("slide-b");
+
+    await addSlide(service.id, a, "first", 1, true);
+
+    // The partial unique index is what makes "which slide opens" deterministic
+    // rather than dependent on row order.
+    await expect(addSlide(service.id, b, "second", 2, true)).rejects.toThrow(
+      /service_images_one_default_idx|duplicate key/i,
+    );
+  });
+
+  it("allows ZERO main images — the slider opens on the first", async () => {
+    const [service] = await firstTwoServices();
+    if (!service) throw new Error("expected a service");
+
+    const a = await makeMedia("slide-a");
+    const b = await makeMedia("slide-b");
+    await addSlide(service.id, a, "first", 1, false);
+    await addSlide(service.id, b, "second", 2, false);
+
+    const rows = await query<{ count: string }>(
+      "SELECT count(*)::text AS count FROM service_images WHERE service_id = $1",
+      [service.id],
+    );
+    expect(rows[0]?.count).toBe("2");
+  });
+
+  it("lets the main image move to another slide once the first is cleared", async () => {
+    const [service] = await firstTwoServices();
+    if (!service) throw new Error("expected a service");
+
+    const a = await makeMedia("slide-a");
+    const b = await makeMedia("slide-b");
+    const first = await addSlide(service.id, a, "first", 1, true);
+    const second = await addSlide(service.id, b, "second", 2, false);
+
+    // Exactly the two statements `patchServiceImage` runs, in one transaction.
+    await withClient(async (client) => {
+      await client.query("BEGIN");
+      await client.query(
+        "UPDATE service_images SET is_default = false WHERE service_id = $1 AND is_default AND id <> $2",
+        [service.id, second],
+      );
+      await client.query("UPDATE service_images SET is_default = true WHERE id = $1", [
+        second,
+      ]);
+      await client.query("COMMIT");
+    });
+
+    const rows = await query<{ id: string; is_default: boolean }>(
+      "SELECT id::text AS id, is_default FROM service_images WHERE service_id = $1",
+      [service.id],
+    );
+    expect(rows.find((r) => r.id === second)?.is_default).toBe(true);
+    expect(rows.find((r) => r.id === first)?.is_default).toBe(false);
+  });
+
+  // -- independence between services ---------------------------------------
+
+  it("🔴 two services keep entirely independent collections", async () => {
+    const [one, two] = await firstTwoServices();
+    if (!one || !two) throw new Error("expected two services");
+
+    const a = await makeMedia("one-a");
+    const b = await makeMedia("two-a");
+    await addSlide(one.id, a, "service one slide", 1, true);
+    await addSlide(two.id, b, "service two slide", 1, true);
+
+    // Both may hold a default at the same time: the index is per service.
+    const counts = await query<{ service_id: string; count: string }>(
+      `SELECT service_id::text AS service_id, count(*)::text AS count
+         FROM service_images GROUP BY service_id`,
+    );
+    expect(counts).toHaveLength(2);
+
+    // Emptying one leaves the other untouched — the property the requirement
+    // states as "updating Acupressure must not modify Acupuncture".
+    await query("DELETE FROM service_images WHERE service_id = $1", [one.id]);
+
+    const left = await query<{ id: string }>(
+      "SELECT id::text AS id FROM service_images WHERE service_id = $1",
+      [two.id],
+    );
+    expect(left).toHaveLength(1);
+  });
+
+  it("allows the SAME image in two different services", async () => {
+    const [one, two] = await firstTwoServices();
+    if (!one || !two) throw new Error("expected two services");
+
+    const shared = await makeMedia("shared");
+    await addSlide(one.id, shared, "in one", 1);
+    await addSlide(two.id, shared, "in two", 1);
+
+    const rows = await query<{ count: string }>(
+      "SELECT count(*)::text AS count FROM service_images WHERE media_id = $1",
+      [shared],
+    );
+    expect(rows[0]?.count).toBe("2");
+  });
+
+  it("refuses the same image twice within ONE service", async () => {
+    const [service] = await firstTwoServices();
+    if (!service) throw new Error("expected a service");
+
+    const a = await makeMedia("slide-a");
+    await addSlide(service.id, a, "once", 1);
+
+    // Two identical slides would render two dots that look broken.
+    await expect(addSlide(service.id, a, "twice", 2)).rejects.toThrow(
+      /service_images_unique_per_service_idx|duplicate key/i,
+    );
+  });
+
+  // -- validation ----------------------------------------------------------
+
+  it("refuses blank alt text", async () => {
+    const [service] = await firstTwoServices();
+    if (!service) throw new Error("expected a service");
+    const a = await makeMedia("slide-a");
+
+    await expect(addSlide(service.id, a, "   ", 1)).rejects.toThrow(
+      /service_images_alt_not_blank/i,
+    );
+  });
+
+  // -- Cloudinary safety ---------------------------------------------------
+
+  it("🔴 a referenced asset cannot be deleted out from under a slider", async () => {
+    const [service] = await firstTwoServices();
+    if (!service) throw new Error("expected a service");
+
+    const a = await makeMedia("still-used");
+    await addSlide(service.id, a, "in use", 1, true);
+
+    // ON DELETE RESTRICT. Without it, destroying a library asset would leave
+    // a slide pointing at nothing — and the admin "remove" action deliberately
+    // never destroys assets for exactly this reason.
+    await expect(query("DELETE FROM media WHERE id = $1", [a])).rejects.toThrow(
+      /violates foreign key|service_images/i,
+    );
+  });
+
+  // -- the public payload --------------------------------------------------
+
+  it("returns the slides in display order, with the main one flagged", async () => {
+    const [service] = await firstTwoServices();
+    if (!service) throw new Error("expected a service");
+
+    const a = await makeMedia("third");
+    const b = await makeMedia("first");
+    const c = await makeMedia("second");
+    await addSlide(service.id, a, "third slide", 30);
+    await addSlide(service.id, b, "first slide", 10, true);
+    await addSlide(service.id, c, "second slide", 20);
+
+    await query("UPDATE services SET published = true WHERE id = $1", [service.id]);
+
+    const payload = (await listServices()).find((s) => s.slug === service.slug);
+    expect(payload).toBeDefined();
+    expect(payload?.images.map((i) => i.alt)).toEqual([
+      "first slide",
+      "second slide",
+      "third slide",
+    ]);
+    expect(payload?.images.filter((i) => i.isDefault)).toHaveLength(1);
+    expect(payload?.images[0]?.isDefault).toBe(true);
+  });
+
+  it("🔴 a service with no collection still carries its single image", async () => {
+    // The backward-compatibility guarantee: this migration must not change any
+    // existing service page, and `images: []` is what the frontend reads as
+    // "render the single `image` exactly as before".
+    const services = await listServices();
+    expect(services.length).toBeGreaterThan(0);
+    for (const s of services) {
+      expect(Array.isArray(s.images)).toBe(true);
+      expect(s.images).toHaveLength(0);
+    }
+  });
+
+  it("omits a slide whose asset was soft-deleted rather than emitting a blank", async () => {
+    const [service] = await firstTwoServices();
+    if (!service) throw new Error("expected a service");
+
+    const good = await makeMedia("good");
+    const gone = await makeMedia("gone");
+    await addSlide(service.id, good, "visible", 1, true);
+    await addSlide(service.id, gone, "orphaned", 2);
+    await query("UPDATE media SET deleted_at = now() WHERE id = $1", [gone]);
+    await query("UPDATE services SET published = true WHERE id = $1", [service.id]);
+
+    const payload = (await listServices()).find((s) => s.slug === service.slug);
+    expect(payload?.images.map((i) => i.alt)).toEqual(["visible"]);
+  });
+});

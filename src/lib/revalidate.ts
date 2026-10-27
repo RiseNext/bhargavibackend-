@@ -68,6 +68,11 @@ export const ALL_REVALIDATE_TAGS: readonly RevalidateTag[] = Object.values(REVAL
  */
 const COLLECTION_TAGS: Record<string, readonly RevalidateTag[]> = {
   services: [REVALIDATE_TAGS.services, REVALIDATE_TAGS.pageMeta],
+  // D-044 · a service's slider images are part of its `/api/services` payload,
+  // so they invalidate the `services` tag. There is deliberately no
+  // `service-images` tag: a tag with no endpoint behind it is the unpublishable
+  // collection this map's other exceptions exist to document.
+  "service-images": [REVALIDATE_TAGS.services],
   testimonials: [REVALIDATE_TAGS.testimonials],
   videos: [REVALIDATE_TAGS.videos],
   gallery: [REVALIDATE_TAGS.gallery],

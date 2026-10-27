@@ -569,6 +569,11 @@ export function emitServices(content) {
     // Omitted entirely when null, so the UI's hide-when-absent path still works.
     if (s.priceFromPaise !== null) row.priceFrom = formatRupees(s.priceFromPaise);
     if (s.typicalCourse !== null) row.typicalCourse = s.typicalCourse;
+    // D-044 · slider images, in display order. Omitted entirely when the
+    // service has none, so `image` above stays the single-image path and a
+    // service nobody has added a collection to emits exactly what it did
+    // before this field existed.
+    if (Array.isArray(s.images) && s.images.length > 0) row.images = s.images;
     return row;
   });
 
@@ -586,6 +591,11 @@ export function emitServices(content) {
   priceFrom?: string;
   /** Display string, e.g. "2–4 sittings". Absent when unknown. */
   typicalCourse?: string;
+  /**
+   * Slider images in display order (D-044). Absent for a service with no
+   * collection, which renders \`image\` above as a single frame.
+   */
+  images?: { src: string; alt: string; isDefault?: boolean }[];
 };
 
 export const services: Service[] = ${literal(services)};
@@ -1025,6 +1035,11 @@ export function emitPageCopy(content) {
         for (const field of ["label", "value", "text", "href", "iconKey", "image", "alt", "lines"]) {
           if (item[field] !== null && item[field] !== undefined) row[field] = item[field];
         }
+        // D-044 · emitted ONLY when true, unlike the fields above. `isDefault`
+        // is `false` on every pre-migration row, so copying it unconditionally
+        // would add a key to all 17 existing items and make the HTML-equivalence
+        // diff that protects D-010 unreadable for a field that changes nothing.
+        if (item.isDefault === true) row.isDefault = true;
         groups[item.groupKey].push(row);
       }
       entry.items = groups;
@@ -1044,6 +1059,8 @@ export type PageCopyItem = {
   image?: string;
   alt?: string;
   lines?: string[];
+  /** The slide an image group opens on, when rendered as a slider (D-044). */
+  isDefault?: boolean;
 };
 
 export type PageCopyBlock = {

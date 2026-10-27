@@ -365,7 +365,7 @@ export const putContentBlockAdmin = (request: Request): Promise<Response> =>
 const ITEM_COLUMNS = `
   id::text AS id, block_id::text AS block_id, group_key, sort_order,
   item_type::text AS item_type, label, value, text, href, icon_key,
-  media_id::text AS media_id, alt, lines, created_at, updated_at`;
+  media_id::text AS media_id, alt, lines, is_default, created_at, updated_at`;
 
 const itemSchema = z
   .object({
@@ -381,6 +381,13 @@ const itemSchema = z
     mediaId: z.string().uuid().nullish(),
     alt: z.string().trim().max(300).nullish(),
     lines: z.array(z.string().max(500)).max(12).nullish(),
+    /**
+     * D-044 — the slide an image group opens on. At most one row per
+     * `(block_id, group_key)` may hold it
+     * (`content_block_items_one_default_idx`); the handlers clear the incumbent
+     * before setting a new one, so an editor never has to.
+     */
+    isDefault: z.boolean().optional(),
   })
   .strict();
 
@@ -422,7 +429,29 @@ function itemColumns(input: z.infer<typeof itemSchema>): Record<string, unknown>
     media_id: input.mediaId ?? null,
     alt: input.alt ?? null,
     lines: input.lines == null ? null : JSON.stringify(input.lines),
+    is_default: input.isDefault ?? false,
   };
+}
+
+/**
+ * Clear whichever row in this group currently holds `is_default` (D-044).
+ *
+ * The partial unique index permits exactly one, so setting a second without
+ * this raises 23505. Called inside the caller's transaction so the two writes
+ * cannot interleave with another editor's.
+ */
+async function clearGroupDefault(
+  client: { query: (sql: string, values: unknown[]) => Promise<unknown> },
+  blockId: string,
+  groupKey: string,
+  exceptId?: string,
+): Promise<void> {
+  await client.query(
+    `UPDATE content_block_items SET is_default = false
+      WHERE block_id = $1 AND group_key = $2 AND is_default
+        AND ($3::uuid IS NULL OR id <> $3::uuid)`,
+    [blockId, groupKey, exceptId ?? null],
+  );
 }
 
 export const createBlockItem = (request: Request): Promise<Response> =>
@@ -454,6 +483,10 @@ export const createBlockItem = (request: Request): Promise<Response> =>
             [parsed.data.blockId, parsed.data.groupKey],
           );
           columns.sort_order = Number(next.rows[0]?.next ?? 1);
+        }
+
+        if (columns.is_default === true) {
+          await clearGroupDefault(client, parsed.data.blockId, parsed.data.groupKey);
         }
 
         const keys = Object.keys(columns);
@@ -525,6 +558,10 @@ export const putBlockItem = (request: Request): Promise<Response> =>
       const setClause = keys.map((k, i) => `${k} = $${String(i + 2)}`).join(", ");
 
       const row = await transaction(async (client) => {
+        if (columns.is_default === true) {
+          await clearGroupDefault(client, parsed.data.blockId, parsed.data.groupKey, id);
+        }
+
         const res = await client.query<Record<string, unknown>>(
           `UPDATE content_block_items SET ${setClause} WHERE id = $1 RETURNING ${ITEM_COLUMNS}`,
           [id, ...keys.map((k) => columns[k])],

@@ -23,6 +23,20 @@ export interface Timestamped {
 // Services
 // ---------------------------------------------------------------------------
 
+/**
+ * One slide of a service's slider (D-044).
+ *
+ * `isDefault` is the slide the page opens on. At most one row carries it
+ * (`service_images_one_default_idx`), and NONE carrying it is legal — the
+ * frontend then opens on the first, which is also what an empty collection and
+ * a just-deleted default produce.
+ */
+export interface ServiceImagePayload {
+  src: string;
+  alt: string;
+  isDefault: boolean;
+}
+
 export interface ServicePayload extends Timestamped {
   slug: string;
   title: string;
@@ -34,6 +48,15 @@ export interface ServicePayload extends Timestamped {
   body: string[];
   treats: string[];
   image: string | null;
+  /**
+   * The slider collection, in display order. **Additive (D-044).**
+   *
+   * 🔴 `image` above is UNCHANGED and still the single hero/OG image. An empty
+   * `images` array is the correct, normal state for a service nobody has added
+   * slides to, and the frontend falls back to `image` for it — so this field
+   * appearing does not alter any existing page.
+   */
+  images: ServiceImagePayload[];
   seoTitle: string | null;
   seoDescription: string | null;
 }
@@ -48,15 +71,37 @@ interface ServiceRow {
   body: string[];
   treats: string[];
   image_url: string | null;
+  images: ServiceImagePayload[] | null;
   seo_title: string | null;
   seo_description: string | null;
   updated_at: Date;
 }
 
+/**
+ * ⚠ The slides are aggregated in a correlated subquery rather than joined.
+ *
+ * A join would multiply every service row by its slide count and make the
+ * single-row `findService` read return duplicates; aggregating keeps both
+ * callers at ONE query and leaves the existing row shape intact. `secure_url
+ * IS NOT NULL` filters a slide whose asset has been deleted rather than
+ * emitting a slide with no image.
+ */
 const SERVICE_SELECT = `
   SELECT s.slug, s.title, s.excerpt, s.duration, s.price_from_paise, s.typical_course,
          s.body, s.treats, m.secure_url AS image_url,
-         s.seo_title, s.seo_description, s.updated_at
+         s.seo_title, s.seo_description, s.updated_at,
+         COALESCE((
+           SELECT json_agg(
+                    json_build_object(
+                      'src', im.secure_url,
+                      'alt', si.alt,
+                      'isDefault', si.is_default
+                    ) ORDER BY si.sort_order, si.id
+                  )
+             FROM service_images si
+             JOIN media im ON im.id = si.media_id AND im.deleted_at IS NULL
+            WHERE si.service_id = s.id AND im.secure_url IS NOT NULL
+         ), '[]'::json) AS images
     FROM services s
     LEFT JOIN media m ON m.id = s.image_media_id AND m.deleted_at IS NULL`;
 
@@ -71,6 +116,7 @@ function toService(r: ServiceRow): ServicePayload {
     body: r.body,
     treats: r.treats,
     image: r.image_url,
+    images: r.images ?? [],
     seoTitle: r.seo_title,
     seoDescription: r.seo_description,
     updatedAt: r.updated_at.toISOString(),
@@ -444,6 +490,12 @@ export interface ContentBlockItemPayload {
   image: string | null;
   alt: string | null;
   lines: string[] | null;
+  /**
+   * The slide this group opens on, for an image group rendered as a slider
+   * (D-044). **Additive** — `false` on every pre-migration row, which the
+   * frontend reads as "open on the first", i.e. today's behaviour.
+   */
+  isDefault: boolean;
 }
 
 export interface ContentBlockPayload extends Timestamped {
@@ -500,12 +552,13 @@ export async function listContentBlocks(page?: string): Promise<ContentBlockPayl
     image_url: string | null;
     alt: string | null;
     lines: string[] | null;
+    is_default: boolean;
   }>(
     // One query for every block's items rather than one per block — the N+1 this
     // avoids would otherwise run ~41 times during each build.
     `SELECT i.block_id::text AS block_id, i.group_key, i.item_type::text AS item_type,
             i.label, i.value, i.text, i.href, i.icon_key,
-            m.secure_url AS image_url, i.alt, i.lines
+            m.secure_url AS image_url, i.alt, i.lines, i.is_default
        FROM content_block_items i
        LEFT JOIN media m ON m.id = i.media_id AND m.deleted_at IS NULL
       WHERE i.block_id = ANY($1::uuid[])
@@ -527,6 +580,7 @@ export async function listContentBlocks(page?: string): Promise<ContentBlockPayl
       image: i.image_url,
       alt: i.alt,
       lines: i.lines,
+      isDefault: i.is_default,
     });
     byBlock.set(i.block_id, list);
   }
