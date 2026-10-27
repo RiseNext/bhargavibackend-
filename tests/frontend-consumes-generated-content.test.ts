@@ -226,12 +226,41 @@ describeIfFrontend("the frontend consumes generated content, not its own copy", 
    * Rendered-HTML proof lives in the frontend's `e2e-revalidation` suite; these
    * are the structural guards that fail fast without a build.
    */
-  it("🔴 the About page renders founder.qualifications", () => {
-    const source = readFileSync(resolve(SRC, "app", "about", "page.tsx"), "utf8");
-    expect(source).toContain("site.founder.qualifications");
+  /*
+   * ⚠ COMMENTS STRIPPED, and that is the point of the helper being used here.
+   *
+   * These two guards used to read the raw file, so the prose explaining *why*
+   * the founder must come from the CMS satisfied the assertion about the
+   * founder coming from the CMS. `site.founder.qualifications` appears in this
+   * page's comments and nowhere in its code; the test passed on the
+   * explanation. Stripping comments is therefore a strengthening, not a
+   * loosening — it is what makes the remaining assertions mean anything.
+   *
+   * ⚠ AND THE SHAPE MOVED. Both guards were written against the build-time
+   * snapshot (`site.founder.*`) emitted by the generator. D-042 replaced that
+   * with `getFounder()`, a runtime read of `GET /api/site-settings` through
+   * Next's tagged Data Cache — the same reader the home hero uses, so the two
+   * surfaces cannot drift. That is strictly stronger than what these tests
+   * were pinned to: an admin edit now reaches the page without a rebuild at
+   * all. What must stay true is the PROPERTY, not the expression: the record is
+   * read from the CMS, and the field is rendered rather than merely mentioned.
+   */
+  it("🔴 the About page renders the CMS founder's qualifications", () => {
+    const source = stripComments(
+      readFileSync(resolve(SRC, "app", "about", "page.tsx"), "utf8"),
+    );
+
+    // Read from the CMS, through the shared reader rather than a local literal.
+    expect(source).toMatch(/\bgetFounder\b/);
+    expect(source).toMatch(/from\s*"@\/lib\/content"/);
+
     // Not merely referenced — rendered. A reference inside a dead helper is how
-    // this field hid for as long as it did.
-    expect(source).toMatch(/\{site\.founder\.qualifications\}/);
+    // this field hid for as long as it did, so require it inside JSX: either
+    // interpolated directly or guarding the element that displays it.
+    expect(source).toMatch(/\{founder\.qualifications\s*&&|\{founder\.qualifications\}/);
+
+    // And still reaching the structured data, in its own property.
+    expect(source).toContain("hasCredential");
   });
 
   it("🔴 qualifications are hasCredential, and do NOT overwrite description", () => {
@@ -245,10 +274,20 @@ describeIfFrontend("the frontend consumes generated content, not its own copy", 
   });
 
   it("the About heading derives the founder's name rather than hardcoding it", () => {
-    const source = readFileSync(resolve(SRC, "app", "about", "page.tsx"), "utf8");
-    expect(source).toContain("site.founder.name.split(");
-    // The two fragments that used to be literals in the heading.
+    const source = stripComments(
+      readFileSync(resolve(SRC, "app", "about", "page.tsx"), "utf8"),
+    );
+
+    // The split is shared with the home hero (`splitFounderName`) so the two
+    // pages cannot disagree about where a stored name divides. Accept the
+    // inline `.split(` form too — what matters is that the heading's fragments
+    // come from the record, not that one particular helper exists.
+    expect(source).toMatch(/splitFounderName\(|founder\.name\.split\(/);
+
+    // 🔴 The actual protection: the two fragments that used to be literals.
+    // Editing the founder's name in the admin panel must move the heading.
     expect(source).not.toMatch(/<span className="italic">Anjana<\/span>/);
+    expect(source).not.toMatch(/>\s*Bhargavi\s*</);
   });
 
   it("🔴 the hero resolves its statistics from the CMS using D-023's rule", () => {

@@ -10,6 +10,9 @@
 
 # Build output
 /.next/
+# Alternate build directories selected with NEXT_DIST_DIR, so a release check
+# can build and start without fighting a dev server for `.next`.
+/.next-*/
 /out/
 /build
 /dist

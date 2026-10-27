@@ -17,6 +17,7 @@ import { requireAdminPage } from "@/lib/auth/guard";
 import { query, queryOne } from "@/lib/db";
 import { isCloudinaryConfigured } from "@/lib/cloudinary/client";
 import { isDeployHookConfigured } from "@/lib/deploy-hook";
+import { isRevalidationConfigured } from "@/lib/revalidate";
 import { publishingState } from "@/lib/publishing-state";
 
 export const dynamic = "force-dynamic";
@@ -53,16 +54,21 @@ export default async function DashboardPage() {
        WHERE NOT published AND deleted_at IS NULL`,
   );
 
-  const hook = await queryOne<{ created_at: Date; diff: { ok?: boolean } | null }>(
+  // 🔴 EITHER publisher. Revalidation audits as `revalidate` and a rebuild as
+  // `deploy_hook`; reading only the latter made a revalidation-only backend
+  // report "nothing has ever published" for ever. Same reasoning, and the same
+  // two queries, as GET /api/admin/summary.
+  const publish = await queryOne<{ created_at: Date; diff: { ok?: boolean } | null }>(
     `SELECT created_at, diff FROM audit_log
-      WHERE action = 'deploy_hook' ORDER BY created_at DESC LIMIT 1`,
+      WHERE action IN ('deploy_hook', 'revalidate')
+      ORDER BY created_at DESC LIMIT 1`,
   );
 
-  // The last SUCCESSFUL rebuild and the newest content change — the two values
+  // The last SUCCESSFUL publish and the newest content change — the two values
   // whose comparison answers "is the public site current?".
-  const hookOk = await queryOne<{ created_at: Date }>(
+  const publishOk = await queryOne<{ created_at: Date }>(
     `SELECT created_at FROM audit_log
-      WHERE action = 'deploy_hook' AND diff->>'ok' = 'true'
+      WHERE action IN ('deploy_hook', 'revalidate') AND diff->>'ok' = 'true'
       ORDER BY created_at DESC LIMIT 1`,
   );
 
@@ -79,10 +85,11 @@ export default async function DashboardPage() {
   );
 
   const publishing = publishingState({
-    configured: isDeployHookConfigured(),
+    revalidate: isRevalidationConfigured(),
+    deployHook: isDeployHookConfigured(),
     lastContentChangeAt: contentChange?.latest ?? null,
-    lastSuccessAt: hookOk?.created_at ?? null,
-    lastAttemptFailed: hook !== undefined && hook.diff?.ok !== true,
+    lastSuccessAt: publishOk?.created_at ?? null,
+    lastAttemptFailed: publish !== undefined && publish.diff?.ok !== true,
   });
 
   const unpublishedTotal = unpublished.reduce((sum, r) => sum + Number(r.n), 0);
@@ -172,18 +179,21 @@ export default async function DashboardPage() {
       </p>
 
       <p style={{ fontSize: 13, color: "var(--muted)" }}>
+        {/* "Publish" rather than "rebuild": on the fast path there is no build. */}
         {publishing.lastSuccessAt === null
-          ? "No rebuild has ever completed successfully."
-          : `Last successful rebuild ${publishing.lastSuccessAt
+          ? "Nothing has ever published successfully."
+          : `Last successful publish ${publishing.lastSuccessAt
               .slice(0, 16)
               .replace("T", " ")} UTC.`}
-        {hook !== undefined && hook.diff?.ok !== true && (
+        {publish !== undefined && publish.diff?.ok !== true && (
           <>
             {" "}
-            Last attempt {hook.created_at.toISOString().slice(0, 16).replace("T", " ")} UTC
+            Last attempt {publish.created_at.toISOString().slice(0, 16).replace("T", " ")} UTC
             failed.
           </>
         )}
+        {" "}
+        Mechanism: {publishing.mechanism}.
       </p>
 
       {/*

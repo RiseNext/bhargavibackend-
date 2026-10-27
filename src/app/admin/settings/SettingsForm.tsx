@@ -10,7 +10,11 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import SaveNotice, { publishingConfiguredFrom } from "../_components/SaveNotice";
+import SaveNotice, {
+  publishingConfiguredFrom,
+  publishingMechanismFrom,
+  type SaveMechanism,
+} from "../_components/SaveNotice";
 
 const CSRF_COOKIE = "bhw_csrf";
 
@@ -139,6 +143,8 @@ export default function SettingsForm({ row }: { row: Record<string, unknown> }) 
   const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
   // Whether the save that just succeeded can actually reach the public site.
   const [publishable, setPublishable] = useState(true);
+  // Which publisher the backend has, so the notice says seconds or minutes.
+  const [mechanism, setMechanism] = useState<SaveMechanism>("deploy-hook");
   const [error, setError] = useState<string | undefined>();
 
   const set = (name: string, value: unknown): void => {
@@ -178,6 +184,7 @@ export default function SettingsForm({ row }: { row: Record<string, unknown> }) 
       }
 
       setPublishable(publishingConfiguredFrom(response));
+      setMechanism(publishingMechanismFrom(response));
       setState("saved");
       router.refresh();
     } catch {
@@ -239,7 +246,7 @@ export default function SettingsForm({ row }: { row: Record<string, unknown> }) 
           {error}
         </p>
       )}
-      {state === "saved" && <SaveNotice configured={publishable} />}
+      {state === "saved" && <SaveNotice configured={publishable} mechanism={mechanism} />}
 
       <button
         type="button"

@@ -9,6 +9,23 @@ import type { NextConfig } from "next";
  * on public submissions is enforced in application code instead.
  */
 const nextConfig: NextConfig = {
+  /**
+   * ⚠ TEST-ONLY ESCAPE HATCH, default unchanged — the same one, for the same
+   * reason, as the frontend's `next.config.ts`.
+   *
+   * A release check has to run `next build` and `next start` against a seeded
+   * throwaway database to prove the production code path. A `next dev` server
+   * left running on this repo owns `.next` and keeps rewriting it, so the
+   * production build and the dev server silently fight over one directory: the
+   * build reports success and `next start` then dies on
+   * `Cannot find module './chunks/vendor-chunks/next.js'`, which reads as a
+   * broken build rather than as two processes sharing a folder.
+   *
+   * Unset — which is every real build, local and on Railway — this is exactly
+   * `.next`.
+   */
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
+
   reactStrictMode: true,
   poweredByHeader: false,
   // `pg` and `@node-rs/argon2` are native/node-only; keep them out of any

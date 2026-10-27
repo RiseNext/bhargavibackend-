@@ -21,6 +21,7 @@ import { CACHE_NO_STORE, handle, respond } from "@/lib/http";
 import { isCloudinaryConfigured } from "@/lib/cloudinary/client";
 import { isDeployHookConfigured } from "@/lib/deploy-hook";
 import { publishingState } from "@/lib/publishing-state";
+import { isRevalidationConfigured } from "@/lib/revalidate";
 
 export const dynamic = "force-dynamic";
 
@@ -94,19 +95,31 @@ export function GET(): Promise<Response> {
          ) c`,
       );
 
-      const lastHook = await queryOne<{ created_at: Date; diff: { ok?: boolean } | null }>(
+      /*
+       * 🔴 BOTH PUBLISH ACTIONS, not just the rebuild.
+       *
+       * These two queries used to read `action = 'deploy_hook'` alone. Since
+       * D-042/D-043 a content change publishes through cache-tag revalidation,
+       * which audits as `action = 'revalidate'` (migration 016). On a backend
+       * publishing by revalidation only, "the last successful publish" was
+       * therefore always NULL, so every content change looked `stale` for ever
+       * and the panel's own advice — "if this does not clear, it is not
+       * reaching the website" — was wrong on a healthy system.
+       *
+       * `lastPublish` is the last ATTEMPT by either mechanism and `lastPublishOk`
+       * the last SUCCESS, which stay different questions: a failing publisher
+       * leaves recent attempts behind while the site falls further behind the
+       * database.
+       */
+      const lastPublish = await queryOne<{ created_at: Date; diff: { ok?: boolean } | null }>(
         `SELECT created_at, diff FROM audit_log
-          WHERE action = 'deploy_hook'
+          WHERE action IN ('deploy_hook', 'revalidate')
           ORDER BY created_at DESC LIMIT 1`,
       );
 
-      // 🔴 The last SUCCESSFUL rebuild, which is a different question from the
-      // last attempt — and the only one that says whether the public site has
-      // the current content. A failing hook leaves recent attempts behind while
-      // the site falls further and further behind the database.
-      const lastHookOk = await queryOne<{ created_at: Date }>(
+      const lastPublishOk = await queryOne<{ created_at: Date }>(
         `SELECT created_at FROM audit_log
-          WHERE action = 'deploy_hook' AND diff->>'ok' = 'true'
+          WHERE action IN ('deploy_hook', 'revalidate') AND diff->>'ok' = 'true'
           ORDER BY created_at DESC LIMIT 1`,
       );
 
@@ -132,8 +145,11 @@ export function GET(): Promise<Response> {
             ]),
           ),
           lastContentChangeAt: lastContentChange?.latest?.toISOString() ?? null,
-          lastDeployHook: lastHook
-            ? { at: lastHook.created_at.toISOString(), ok: lastHook.diff?.ok ?? false }
+          // Name kept for the existing consumers; it now reports the last
+          // attempt by EITHER publisher, which is what the field was always
+          // meant to answer.
+          lastDeployHook: lastPublish
+            ? { at: lastPublish.created_at.toISOString(), ok: lastPublish.diff?.ok ?? false }
             : null,
           // 🔴 Is the public website showing the current content, or not?
           //
@@ -142,10 +158,11 @@ export function GET(): Promise<Response> {
           // which is "did that reach the website?" — and the absence of that
           // answer is why content sat unpublished with a green dashboard.
           publishing: publishingState({
-            configured: isDeployHookConfigured(),
+            revalidate: isRevalidationConfigured(),
+            deployHook: isDeployHookConfigured(),
             lastContentChangeAt: lastContentChange?.latest ?? null,
-            lastSuccessAt: lastHookOk?.created_at ?? null,
-            lastAttemptFailed: lastHook !== undefined && lastHook.diff?.ok !== true,
+            lastSuccessAt: lastPublishOk?.created_at ?? null,
+            lastAttemptFailed: lastPublish !== undefined && lastPublish.diff?.ok !== true,
           }),
           integrations: {
             storage: isCloudinaryConfigured(),

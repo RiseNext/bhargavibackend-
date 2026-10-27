@@ -17,6 +17,8 @@ import { isDeployHookConfigured } from "./deploy-hook";
 import { env } from "./env";
 import { toPublicError } from "./errors";
 import { logger } from "./logger";
+import { mechanismOf } from "./publishing-state";
+import { isRevalidationConfigured } from "./revalidate";
 
 export const CACHE_PUBLIC_CONTENT = "public, s-maxage=300, stale-while-revalidate=3600";
 export const CACHE_NO_STORE = "no-store";
@@ -43,15 +45,29 @@ export function respond(body: unknown, options: RespondOptions = {}): NextRespon
   if (options.admin) {
     headers["Cache-Control"] = CACHE_ADMIN;
     headers["X-Robots-Tag"] = "noindex, nofollow";
-    // 🔴 So a save can never again claim a rebuild it cannot trigger.
+    // 🔴 So a save can never again claim a publish it cannot perform.
     //
-    // Content reaches the public site only by a rebuild (D-016). When
-    // VERCEL_DEPLOY_HOOK_URL is unset there is no rebuild, yet every admin form
-    // still said "Saved. A site rebuild has been queued" — and the content
-    // stayed invisible. A header rather than a body field because admin
+    // When VERCEL_DEPLOY_HOOK_URL was unset there was no rebuild, yet every
+    // admin form still said "Saved. A site rebuild has been queued" — and the
+    // content stayed invisible. A header rather than a body field because admin
     // responses have fourteen different body shapes and none of them should
     // change; the forms read this to choose their wording.
-    headers["X-Publishing-Configured"] = isDeployHookConfigured() ? "1" : "0";
+    //
+    // 🔴 BOTH MECHANISMS COUNT, and reading only the hook was wrong in the
+    // opposite direction. Since D-042/D-043 content publishes through cache-tag
+    // revalidation as well, so a backend with REVALIDATE_SECRET and no deploy
+    // hook published correctly in seconds while this header said "0" and every
+    // save showed the red "NOT published" warning. An editor who is told their
+    // work is lost when it is live stops trusting the panel just as fast as one
+    // who is told it is live when it is lost.
+    const mechanism = mechanismOf({
+      revalidate: isRevalidationConfigured(),
+      deployHook: isDeployHookConfigured(),
+    });
+    headers["X-Publishing-Configured"] = mechanism === "none" ? "0" : "1";
+    // Additive, so the notice can describe seconds or minutes accurately. The
+    // 0/1 header above keeps its exact meaning for a client that predates this.
+    headers["X-Publishing-Mechanism"] = mechanism;
   } else if (options.cache) {
     headers["Cache-Control"] = options.cache;
   }

@@ -29,6 +29,8 @@
  * `DATABASE_URL` outright, because the helpers TRUNCATE every table they find.
  */
 
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { isDbReachable, seedStageS1, withClient } from "./helpers/db";
 import { closeDb, query, queryOne } from "@/lib/db";
@@ -318,5 +320,109 @@ describeIfDb("service images · D-044 invariants", () => {
 
     const payload = (await listServices()).find((s) => s.slug === service.slug);
     expect(payload?.images.map((i) => i.alt)).toEqual(["visible"]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The admin wire contract
+// ---------------------------------------------------------------------------
+
+/**
+ * 🔴 ONE RESOURCE, ONE NAMING CONVENTION.
+ *
+ * CLAUDE.md §7 fixes the boundary rule — `snake_case` in the database,
+ * `camelCase` over the wire — and the write verbs here already followed it:
+ * POST takes `mediaId`, PATCH takes `isDefault`. The reads did not. `GET`,
+ * `POST`'s `RETURNING` and `PATCH`'s `RETURNING` all emitted `is_default`,
+ * `sort_order` and `secure_url`, so the same resource answered in two
+ * conventions depending on which verb you used.
+ *
+ * ⚠ WHY NO SCREEN NOTICED, which is the part worth guarding. Nothing fetches
+ * these endpoints today: the service edit page is a server component that runs
+ * its own query and maps the columns itself, and `ImageCollectionEditor` calls
+ * `router.refresh()` instead of re-reading. So the drift was invisible, and the
+ * next consumer would have been the one to find it — quietly. `isDefault` reads
+ * as `undefined`, so EVERY slide looks like "not the main image"; and
+ * `secureUrl !== null` is TRUE for a missing value, so `undefined` reaches
+ * `next/image`.
+ *
+ * Asserted against the SQL rather than over HTTP because the defect is in the
+ * column aliases, and a source check needs no server, no session and no CSRF
+ * token to catch a regression in exactly the place it would reappear.
+ */
+describe("D-044 · the admin endpoints answer in camelCase", () => {
+  const SOURCE = readFileSync(
+    resolve(import.meta.dirname, "..", "src", "lib", "admin", "service-images.ts"),
+    "utf8",
+  );
+
+  /** SQL only — a comment explaining the old names must not fail the check. */
+  const sql = SOURCE.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
+
+  it("aliases every snake_case column the admin responses return", () => {
+    for (const [column, wire] of [
+      ["service_id", "serviceId"],
+      ["media_id", "mediaId"],
+      ["sort_order", "sortOrder"],
+      ["is_default", "isDefault"],
+      ["secure_url", "secureUrl"],
+      ["created_at", "createdAt"],
+      ["updated_at", "updatedAt"],
+    ] as const) {
+      expect(sql, `${column} must be aliased to "${wire}"`).toContain(`AS "${wire}"`);
+    }
+  });
+
+  it("🔴 returns no bare snake_case column in any RETURNING list", () => {
+    /*
+     * A bare `is_default,` in a PROJECTION is the exact shape of the defect:
+     * valid SQL, a 200 response, and a field no caller is looking for.
+     *
+     * ⚠ Only projections. An INSERT's own column list — `INSERT INTO
+     * service_images (service_id, media_id, alt, sort_order, is_default)` — is
+     * correct snake_case and must stay that way, so scanning the whole file for
+     * `sort_order` flags the one place the raw name belongs.
+     */
+    const projections = [
+      ...sql.matchAll(/RETURNING([\s\S]*?)`/g),
+      ...sql.matchAll(/const IMAGE_COLUMNS = `([\s\S]*?)`/g),
+    ].map((m) => m[1] ?? "");
+
+    expect(projections.length).toBeGreaterThanOrEqual(3);
+
+    for (const projection of projections) {
+      for (const bare of ["service_id", "media_id", "sort_order", "is_default", "secure_url"]) {
+        // The raw name may only appear as the left side of an alias.
+        const unaliased = new RegExp(`${bare}(?!::text)(?!\\s+AS)`);
+        expect(projection, `a projection emits a bare "${bare}"`).not.toMatch(unaliased);
+      }
+    }
+  });
+
+  it("matches the shape the admin editor actually reads", () => {
+    // The component's own interface is the contract; keep the two in step.
+    const editor = readFileSync(
+      resolve(
+        import.meta.dirname,
+        "..",
+        "src",
+        "app",
+        "admin",
+        "_components",
+        "ImageCollectionEditor.tsx",
+      ),
+      "utf8",
+    );
+    const slideRow = /export interface SlideRow \{([\s\S]*?)\}/.exec(editor)?.[1] ?? "";
+    expect(slideRow, "SlideRow must be declared in the editor").not.toBe("");
+
+    const fields = [...slideRow.matchAll(/^\s*(\w+)\s*:/gm)].map((m) => m[1]);
+    expect(fields.length).toBeGreaterThan(4);
+    for (const field of fields) {
+      if (field === "id" || field === "alt") continue;
+      expect(sql, `SlideRow.${String(field)} must be produced by the SQL`).toContain(
+        `AS "${String(field)}"`,
+      );
+    }
   });
 });

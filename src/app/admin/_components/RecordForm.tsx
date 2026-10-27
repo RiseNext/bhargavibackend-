@@ -23,7 +23,11 @@ import {
   type FieldSpec,
 } from "@/lib/admin/ui-schema";
 import MediaPicker from "./MediaPicker";
-import SaveNotice, { publishingConfiguredFrom } from "./SaveNotice";
+import SaveNotice, {
+  publishingConfiguredFrom,
+  publishingMechanismFrom,
+  type SaveMechanism,
+} from "./SaveNotice";
 
 const CSRF_COOKIE = "bhw_csrf";
 
@@ -121,6 +125,8 @@ export default function RecordForm({
   const [error, setError] = useState<string | undefined>();
   // Whether the save that just succeeded can actually reach the public site.
   const [publishable, setPublishable] = useState(true);
+  // Which publisher the backend has, so the notice says seconds or minutes.
+  const [mechanism, setMechanism] = useState<SaveMechanism>("deploy-hook");
 
   const set = (name: string, value: unknown): void => {
     setValues((previous) => ({ ...previous, [name]: value }));
@@ -166,6 +172,7 @@ export default function RecordForm({
       }
 
       setPublishable(publishingConfiguredFrom(response));
+    setMechanism(publishingMechanismFrom(response));
       setState("saved");
       if (isNew) {
         const created = (await response.json()) as { id?: string };
@@ -199,6 +206,7 @@ export default function RecordForm({
     // silent non-publication is hardest to notice, because the admin list
     // correctly shows "unpublished" while the public page still shows the item.
     setPublishable(publishingConfiguredFrom(response));
+    setMechanism(publishingMechanismFrom(response));
     setState("saved");
     router.refresh();
   }
@@ -253,7 +261,7 @@ export default function RecordForm({
           {error}
         </p>
       )}
-      {state === "saved" && <SaveNotice configured={publishable} />}
+      {state === "saved" && <SaveNotice configured={publishable} mechanism={mechanism} />}
 
       <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
         <button type="button" onClick={() => void save()} disabled={state === "saving"} style={primary}>

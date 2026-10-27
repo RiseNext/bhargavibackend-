@@ -49,7 +49,13 @@ const nodeGlobals = {
 export default tseslint.config(
   {
     ignores: [
-      ".next/**",
+      // 🔴 EVERY build directory, not just the default one. `NEXT_DIST_DIR`
+      // lets a release check build into `.next-e2e` while a dev server owns
+      // `.next`; with only `.next/**` ignored, the next `npm run lint` walked
+      // the alternate build output and reported ~15,000 errors in generated
+      // code. A lint run that depends on which directories happen to exist is
+      // not a check anyone can act on.
+      ".next*/**",
       "node_modules/**",
       // Next.js generates this and owns its contents.
       "next-env.d.ts",

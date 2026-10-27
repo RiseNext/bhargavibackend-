@@ -34,11 +34,28 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 /**
  * `secure_url` is joined in so the admin list can render a preview without a
  * second round trip, exactly as `MediaPicker` expects to receive it.
+ *
+ * 🔴 ALIASED TO camelCase, deliberately. CLAUDE.md §7 states the boundary rule
+ * — `snake_case` in the database, `camelCase` over the wire — and this
+ * resource's own write verbs already honour it: POST takes `mediaId`, PATCH
+ * takes `isDefault`. The list was returning `is_default` / `sort_order` /
+ * `secure_url` while `ImageCollectionEditor`'s `SlideRow` reads `isDefault`,
+ * `sortOrder` and `secureUrl`, so one resource answered in two conventions
+ * depending on the verb.
+ *
+ * ⚠ WHAT MADE IT HARMLESS SO FAR, and why that is not a reason to leave it. No
+ * screen fetches this endpoint today: the service edit page is a server
+ * component that runs its own query and maps the columns itself, and the editor
+ * calls `router.refresh()` rather than re-reading. So the next consumer is the
+ * one that breaks, and it breaks QUIETLY — `row.isDefault` is `undefined`, so
+ * every slide reads as "not the main image" and `secureUrl !== null` is TRUE
+ * for a missing value, which hands `undefined` to `next/image`.
  */
 const IMAGE_COLUMNS = `
-  si.id::text AS id, si.service_id::text AS service_id, si.media_id::text AS media_id,
-  si.alt, si.sort_order, si.is_default, m.secure_url, m.public_id,
-  si.created_at, si.updated_at`;
+  si.id::text AS id, si.service_id::text AS "serviceId", si.media_id::text AS "mediaId",
+  si.alt, si.sort_order AS "sortOrder", si.is_default AS "isDefault",
+  m.secure_url AS "secureUrl", m.public_id AS "publicId",
+  si.created_at AS "createdAt", si.updated_at AS "updatedAt"`;
 
 const IMAGE_FROM = `
   FROM service_images si
@@ -207,9 +224,10 @@ export const createServiceImage = (request: Request): Promise<Response> =>
         const res = await client.query<Record<string, unknown>>(
           `INSERT INTO service_images (service_id, media_id, alt, sort_order, is_default)
            VALUES ($1, $2, $3, $4, $5)
-           RETURNING id::text AS id, service_id::text AS service_id,
-                     media_id::text AS media_id, alt, sort_order, is_default,
-                     created_at, updated_at`,
+           RETURNING id::text AS id, service_id::text AS "serviceId",
+                     media_id::text AS "mediaId", alt,
+                     sort_order AS "sortOrder", is_default AS "isDefault",
+                     created_at AS "createdAt", updated_at AS "updatedAt"`,
           [serviceId, input.mediaId, input.alt, sortOrder, wantsDefault],
         );
         const inserted = res.rows[0];
@@ -307,9 +325,10 @@ export const patchServiceImage = (request: Request): Promise<Response> =>
         const res = await client.query<Record<string, unknown>>(
           `UPDATE service_images SET ${sets.join(", ")}
             WHERE id = $1 AND service_id = $2
-            RETURNING id::text AS id, service_id::text AS service_id,
-                      media_id::text AS media_id, alt, sort_order, is_default,
-                      created_at, updated_at`,
+            RETURNING id::text AS id, service_id::text AS "serviceId",
+                      media_id::text AS "mediaId", alt,
+                      sort_order AS "sortOrder", is_default AS "isDefault",
+                      created_at AS "createdAt", updated_at AS "updatedAt"`,
           values,
         );
         const updated = res.rows[0];
