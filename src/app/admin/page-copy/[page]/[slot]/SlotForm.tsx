@@ -181,6 +181,12 @@ export default function SlotForm({
               type="button"
               disabled={state === "saving"}
               aria-label={`Remove paragraph ${String(index + 1)}`}
+              // ⚠ The only `×` on this screen, and it deletes NOTHING stored —
+              // it drops a paragraph from the unsaved form, and Save or reload
+              // decides. Spelled out on hover because an unlabelled cross one
+              // section above a live image list invites exactly the misread
+              // that cost the hero its photograph.
+              title="Remove this paragraph from the form (takes effect when you save)"
               onClick={() => { setBody(body.filter((_, i) => i !== index)); touch(); }}
               style={{ ...secondary, padding: "4px 10px", color: "var(--danger)" }}
             >

@@ -159,6 +159,7 @@ export default function ImageCollectionEditor({
   description,
   emptyHint = "No slider images yet. Add one below.",
   altPlaceholder = "e.g. Acupressure applied to a patient's shoulder",
+  requiredNonEmpty = false,
 }: {
   rows: SlideRow[];
   target: CollectionTarget;
@@ -166,6 +167,13 @@ export default function ImageCollectionEditor({
   description?: React.ReactNode;
   emptyHint?: string;
   altPlaceholder?: string;
+  /**
+   * The page reads this collection through an accessor that THROWS on an empty
+   * group, so emptying it fails the next site rebuild rather than degrading the
+   * page. Changes the empty state from a hint into a warning, and makes the
+   * confirmation for removing the LAST image say what it will cost.
+   */
+  requiredNonEmpty?: boolean;
 }) {
   const router = useRouter();
   const ops = opsFor(target);
@@ -226,6 +234,34 @@ export default function ImageCollectionEditor({
     }
   }
 
+  /**
+   * 🔴 REMOVAL ASKS FIRST. It did not, and a single misdirected click deleted
+   * the homepage hero's only image row — irreversibly, because the DELETE is a
+   * hard delete and the audit row records only `groupKey`, not the `media_id`
+   * or `alt` needed to put it back.
+   *
+   * `confirm` matches `RecordForm` and `BlocksEditor`, the two screens that
+   * already guard a delete this way, rather than introducing a third pattern.
+   *
+   * ⚠ The LAST image gets its own sentence. Emptying a required collection is
+   * not "one less picture" — it stops the whole site publishing until an image
+   * is added back, which is not something to discover from a failed build.
+   */
+  function confirmRemoval(row: SlideRow): boolean {
+    const last = rows.length === 1;
+    const consequence =
+      last && requiredNonEmpty
+        ? "\n\nThis is the LAST image in this section, and the website requires one here. " +
+          "Until you add a replacement the next site rebuild will FAIL, and no other change " +
+          "an administrator saves will reach the public website."
+        : "";
+    return confirm(
+      `Remove "${row.alt}" from this section?` +
+        consequence +
+        "\n\nThe file itself stays in your media library.",
+    );
+  }
+
   async function move(index: number, by: -1 | 1): Promise<void> {
     const target = index + by;
     if (target < 0 || target >= rows.length) return;
@@ -267,7 +303,26 @@ export default function ImageCollectionEditor({
       )}
 
       {rows.length === 0 ? (
-        <p style={{ fontSize: 13, color: "var(--muted)" }}>
+        // ⚠ An empty REQUIRED collection is a live fault, not a blank slate —
+        // it blocks publishing for the whole site — so it is announced rather
+        // than greyed out. The "Add an image" box below is outside this
+        // conditional and stays on screen at zero rows, which is the whole
+        // reason this component now renders for an empty group at all.
+        <p
+          {...(requiredNonEmpty ? { role: "alert" as const } : {})}
+          style={
+            requiredNonEmpty
+              ? {
+                  fontSize: 13,
+                  color: "var(--danger)",
+                  border: "1px solid var(--danger)",
+                  background: "var(--danger-surface, #fdf2f2)",
+                  borderRadius: "var(--radius)",
+                  padding: "10px 12px",
+                }
+              : { fontSize: 13, color: "var(--muted)" }
+          }
+        >
           {emptyHint}
         </p>
       ) : (
@@ -352,20 +407,29 @@ export default function ImageCollectionEditor({
                 {row.isDefault ? "Main" : "Make main"}
               </button>
 
+              {/* 🔴 The one destructive control in this list, and it must not
+                  look like the three neutral ones beside it. It is filled and
+                  outlined in the danger colour and spells out "Remove image" —
+                  an unlabelled `×` sitting next to a close control is exactly
+                  how the hero's only photograph got deleted by a misdirected
+                  click. See §"destructive, not dismissive" in dangerButton. */}
               <button
                 type="button"
-                onClick={() =>
+                onClick={() => {
+                  if (!confirmRemoval(row)) return;
                   void send(
                     ops.remove(row),
                     // Says what removal does and does not do, because "remove"
-                    // reasonably reads as "delete the file".
-                    "Image removed from this service. The file is still in the library.",
-                  )
-                }
+                    // reasonably reads as "delete the file". Not "from this
+                    // service" — this screen also drives the homepage hero.
+                    "Image removed from this section. The file is still in your media library.",
+                  );
+                }}
                 disabled={busy}
-                style={{ ...smallButton, color: "var(--danger)" }}
+                aria-label={`Remove image: ${row.alt}`}
+                style={dangerButton}
               >
-                Remove
+                Remove image
               </button>
             </li>
           ))}
@@ -430,6 +494,31 @@ export default function ImageCollectionEditor({
     </section>
   );
 }
+
+/**
+ * DESTRUCTIVE, NOT DISMISSIVE.
+ *
+ * 🔴 A colour-only difference was not enough. `Remove` previously differed from
+ * `Make main` and the arrows by its text colour alone, in a row of four
+ * same-shaped buttons — indistinguishable at a glance, invisible to anyone with
+ * a colour-vision deficiency, and one click away from deleting live content.
+ *
+ * Filled background + matching border + explicit verb-and-noun label, so the
+ * irreversible control differs from its neighbours in SHAPE and WORDING, not
+ * just hue. Close/cancel controls stay unfilled and neutral, which is the
+ * distinction the mistake turned on.
+ */
+const dangerButton: React.CSSProperties = {
+  background: "var(--danger-surface, #fdf2f2)",
+  border: "1px solid var(--danger)",
+  color: "var(--danger)",
+  borderRadius: "var(--radius)",
+  padding: "5px 10px",
+  cursor: "pointer",
+  fontSize: 13,
+  fontWeight: 600,
+  whiteSpace: "nowrap",
+};
 
 const smallButton: React.CSSProperties = {
   background: "none",
