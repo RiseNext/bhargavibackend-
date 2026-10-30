@@ -314,6 +314,88 @@ suite("🔴 admin screens render for a signed-in administrator", () => {
     }
   }, RENDER_TIMEOUT);
 
+  it("🔴 the hero image editor SURVIVES an empty collection — the vanishing-editor regression", async () => {
+    /**
+     * The defect this pins down. `/admin/page-copy/[page]/[slot]` derived its
+     * image groups from the rows it found and rendered one editor per group:
+     *
+     *     const imageGroups = await loadImageGroups(row.id);   // [] when none
+     *     {imageGroups.map((g) => <ImageCollectionEditor … />)}
+     *
+     * `home.hero` holds ONE image row in production (D-041), so clicking Remove
+     * on it emptied the list, `.map` rendered nothing, and the entire image
+     * section disappeared — previews, reorder, main-image, alt text, and the
+     * "Add an image" box that lives INSIDE that component. The only control
+     * that could undo the removal was inside the thing that vanished, so the
+     * homepage photograph became unmanageable from the admin panel entirely.
+     *
+     * ⚠ THE PRE-EXISTING TESTS COULD NOT CATCH THIS. The two above assert the
+     * screen answers 200, and it did — a page that silently omits a section is
+     * a perfectly successful render. One seeds a row and asserts the row shows,
+     * which is the populated path. Nothing asserted what the screen offers when
+     * the collection is EMPTY, which is the state the mistake creates.
+     *
+     * ⚠ SELF-CONTAINED FIXTURE, like the populated test above. `beforeAll`
+     * seeds stage S1 and inserts the bare `home.hero` block, so the production
+     * image row is not present here — this test creates one, proves the editor
+     * manages it, then deletes it exactly as the Remove button does and proves
+     * the editor is STILL there.
+     */
+    const block = await queryOne<{ id: string }>(
+      "SELECT id::text AS id FROM content_blocks WHERE page = 'home' AND slot = 'hero'",
+    );
+    const media = await queryOne<{ id: string }>(
+      `INSERT INTO media (public_id, resource_type, delivery_type, visibility, format,
+                          bytes, width, height, secure_url, folder)
+       VALUES ('screens-test/hero-empty', 'image', 'upload', 'public', 'webp', 2345, 1600, 1200,
+               'https://res.cloudinary.com/demo/image/upload/screens-hero-empty.webp', 'brand')
+       RETURNING id::text AS id`,
+    );
+    if (!block || !media) throw new Error("fixture insert failed");
+
+    try {
+      await query(
+        `INSERT INTO content_block_items (block_id, group_key, item_type, media_id, alt, sort_order)
+         VALUES ($1, 'images', 'image', $2, 'Last hero photo', 1)`,
+        [block.id, media.id],
+      );
+
+      // Precondition: with one row the editor manages it, and the destructive
+      // control is the explicit one rather than a bare `×`.
+      const populated = await screen("/admin/page-copy/home/hero");
+      assertRendered("/admin/page-copy/home/hero", populated);
+      expect(populated.body).toContain("Last hero photo");
+      expect(populated.body).toContain("Remove image");
+
+      // Now do what the misdirected click did: remove the LAST image.
+      await query("DELETE FROM content_block_items WHERE alt = 'Last hero photo'");
+
+      const emptied = await screen("/admin/page-copy/home/hero");
+      assertRendered("/admin/page-copy/home/hero", emptied);
+
+      // 🔴 THE ASSERTION THAT WOULD HAVE CAUGHT IT. With zero rows the screen
+      // must still offer a way back in. "Add an image" is the heading of the
+      // upload box inside `ImageCollectionEditor`, so its presence proves the
+      // component rendered at all rather than being skipped by `.map`.
+      expect(
+        emptied.body,
+        "the image editor vanished when the collection emptied — nothing on the screen can add an image back",
+      ).toContain("Add an image");
+
+      // And the empty state must say what it costs: `copy.items` THROWS on an
+      // empty group, so an empty hero FAILS the next frontend build rather
+      // than publishing a hero with no photograph.
+      expect(emptied.body).toMatch(/rebuild will fail/i);
+    } finally {
+      await query("DELETE FROM content_block_items WHERE alt = 'Last hero photo'").catch(
+        () => undefined,
+      );
+      await query("DELETE FROM media WHERE public_id = 'screens-test/hero-empty'").catch(
+        () => undefined,
+      );
+    }
+  }, RENDER_TIMEOUT);
+
   it("the blog BLOCKS editor renders — the third call site of the same pattern", async () => {
     // ⚠ A plain INSERT. `blog_posts_slug_key` is a PARTIAL unique index
     // (`WHERE deleted_at IS NULL`), so `ON CONFLICT (slug)` finds no matching

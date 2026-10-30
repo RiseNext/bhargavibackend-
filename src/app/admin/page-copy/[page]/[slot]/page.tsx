@@ -19,6 +19,7 @@ import { notFound } from "next/navigation";
 import { requireAdminPage } from "@/lib/auth/guard";
 import { query, queryOne } from "@/lib/db";
 import { allowedExtraKeys } from "@/lib/content/extra-allowlist";
+import { declaredImageGroups, mergeImageGroups } from "@/lib/content/image-groups";
 // 🔴 TYPES ONLY besides the component. Calling a function exported from a
 // `"use client"` module is what broke the service editor in production; this
 // route had the identical defect and would have thrown the same way the moment
@@ -126,7 +127,15 @@ export default async function SlotEditPage({
   );
   if (!row) notFound();
 
-  const imageGroups = await loadImageGroups(row.id);
+  // 🔴 DECLARED ∪ FOUND, never FOUND alone. Deriving this list from the rows
+  // that exist meant removing the last image removed the editor with it —
+  // including the "Add an image" box inside it — leaving the homepage
+  // photograph unmanageable and the removal impossible to undo. A collection
+  // belongs to the slot, not to today's rows. See `lib/content/image-groups.ts`.
+  const imageGroups = mergeImageGroups(
+    declaredImageGroups(page, slot),
+    await loadImageGroups(row.id),
+  );
 
   // snake_case in the database, camelCase over the wire — the same boundary
   // rule the API follows, applied here so the form speaks one language.
@@ -165,10 +174,21 @@ export default async function SlotEditPage({
           target={
             { kind: "blockItem", blockId: row.id, groupKey: group.key } satisfies CollectionTarget
           }
-          heading={
-            group.rows.length > 1 ? `Images — ${group.key}` : `Image — ${group.key}`
+          heading={group.rows.length === 1 ? `Image — ${group.key}` : `Images — ${group.key}`}
+          // 🔴 NOT a neutral "nothing here yet". This section's images are read
+          // by `copy.items`/`copy.item`, which THROW on an empty group rather
+          // than publish a heading with no picture under it — so leaving this
+          // empty does not degrade the page, it FAILS THE NEXT SITE REBUILD and
+          // nothing else an administrator saves reaches the website either. The
+          // empty state has to say so.
+          emptyHint={
+            declaredImageGroups(page, slot).includes(group.key)
+              ? "This section has no image. The website requires one here: until you add it the " +
+                "next site rebuild will fail, and no other saved change will reach the public " +
+                "site. Add an image below. (The public site keeps showing the last published " +
+                "version until a rebuild succeeds.)"
+              : "No images in this group yet. Add one below."
           }
-          emptyHint="No images in this group yet. Add one below."
           description={
             <>
               The photographs this section shows, in the order below. The main image is the one it
@@ -180,6 +200,7 @@ export default async function SlotEditPage({
             </>
           }
           altPlaceholder="e.g. A patient receiving acupuncture at the clinic"
+          requiredNonEmpty={declaredImageGroups(page, slot).includes(group.key)}
         />
       ))}
     </>
